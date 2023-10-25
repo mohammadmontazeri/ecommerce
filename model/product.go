@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"log"
+	"main/helper"
 	"mime/multipart"
 	"path/filepath"
 
@@ -141,7 +142,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 	// Get Model If Exist
-	err := GetModelIfExisted(c, id)
+	err := helper.GetModelIfExisted("products", id)
 
 	if err != nil {
 		return
@@ -154,15 +155,15 @@ func DeleteProduct(c *gin.Context) {
 	}
 }
 
-func GetModelIfExisted(c *gin.Context, id int) error {
-	queryString := fmt.Sprintf("SELECT id FROM products WHERE id=%d ", id)
-	error := db.QueryRow(queryString).Scan(&id)
-	if error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "product not found"})
-		return error
-	}
-	return nil
-}
+// func GetModelIfExisted(c *gin.Context, id int) error {
+// 	queryString := fmt.Sprintf("SELECT id FROM products WHERE id=%d ", id)
+// 	error := db.QueryRow(queryString).Scan(&id)
+// 	if error != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"message": "product not found"})
+// 		return error
+// 	}
+// 	return nil
+// }
 
 func UploadProductImage(c *gin.Context) string {
 	file, _ := c.FormFile("picture")

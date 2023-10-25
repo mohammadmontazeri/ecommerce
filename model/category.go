@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"main/helper"
 	"net/http"
 
 	// "reflect"
@@ -111,9 +112,10 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 	// Get Model If Exist
-	err := GetCategoryIfExisted(c,id)
+	err := helper.GetModelIfExisted("categories",id)
 
 	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "category not found"})
 		return
 	}
 	_, err = db.Exec("DELETE FROM categories WHERE id=$1", id)
@@ -122,14 +124,4 @@ func DeleteCategory(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK,gin.H{"Message" :"data deleted successful"})	
 	}
-}
-
-func GetCategoryIfExisted(c *gin.Context , id int) error{
-	queryString := fmt.Sprintf("SELECT id FROM categories WHERE id=%d ", id)
-	error := db.QueryRow(queryString).Scan(&id)
-	if error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "category not found"})
-		return error
-	}
-	return nil
 }
