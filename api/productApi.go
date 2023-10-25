@@ -8,23 +8,18 @@ import (
 
 // create CRUD for Product model
 
-func CreateProduct(c *gin.Context){
+func CreateProduct(c *gin.Context) {
 	model.CreateProduct(c)
 }
 
-func GetProduct(c *gin.Context){
+func GetProduct(c *gin.Context) {
 	model.GetProduct(c)
 }
 
-func UpdateProduct(c *gin.Context){
+func UpdateProduct(c *gin.Context) {
 	model.UpdateProduct(c)
 }
 
-func DeleteProduct(c *gin.Context){
+func DeleteProduct(c *gin.Context) {
 	model.DeleteProduct(c)
 }
-
-// func Upload(c *gin.Context){
-// 	file,_ := c.FormFile("picture")
-// 		log.Println(file.Filename)
-// }
