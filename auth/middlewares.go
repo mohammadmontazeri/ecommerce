@@ -1,17 +1,14 @@
-package middleware
+package auth
 
 import (
-	"fmt"
-	"main/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func JwtApiMiddleware() gin.HandlerFunc{
-	fmt.Println("asdasd")
+func JwtApiMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := model.TokenValid(c)
+		err := TokenValid(c)
 		if err != nil {
 			c.String(http.StatusUnauthorized, "Unauthorized User")
 			c.Abort()

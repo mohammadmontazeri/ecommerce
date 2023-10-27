@@ -1,19 +1,15 @@
-package api
+package user
 
 import (
-
-	// "fmt"
-	// "log"
-	_"fmt"
-	"main/model"
+	_ "fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RegisterInput struct {
-	ID       int    `json:"id"`
-	Username     string `json:"username" binding:"required"`
+	Id       int    `json:"id"`
+	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -22,6 +18,7 @@ type LoginInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
 func Register(c *gin.Context) {
 	var input RegisterInput
 
@@ -30,7 +27,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	u := model.User{}
+	u := User{}
 
 	u.Email = input.Email
 	u.Username = input.Username
@@ -40,10 +37,10 @@ func Register(c *gin.Context) {
 	u.BeforeInsert()
 	// insert user
 	u.Insert(c)
-	
+
 }
 
-func Login(c *gin.Context){
+func Login(c *gin.Context) {
 	var input LoginInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -51,21 +48,20 @@ func Login(c *gin.Context){
 		return
 	}
 
-	u := model.User{}
-	// fmt.Printf("u:%s , i:%s",u.Username , input.Username)
+	u := User{}
 	u.Username = input.Username
 	u.Password = input.Password
 
-	token,err := model.CheckLogin(u.Username, u.Password)
+	token, err := CheckLogin(u.Username, u.Password)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token":token})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func AuthorizedUser(c *gin.Context){
-	c.JSON(http.StatusOK, gin.H{"Message":"User Authorized !"})
+func AuthorizedUser(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"Message": "User Authorized !"})
 }

@@ -1,4 +1,4 @@
-package model
+package db
 
 import (
 	"database/sql"
@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/joho/godotenv"
 )
 
 const (
@@ -17,15 +16,13 @@ const (
 	dbname   = "ecommerce"
 )
 
-
-
 func ConnectToDb() *sql.DB {
 
 	connstring := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%d sslmode=disable", user, dbname, password, host, port)
 	db, err := sql.Open("postgres", connstring)
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Database Connection Failed !")
 	} else {
 		fmt.Println("You are connect to DB !")
 
@@ -36,7 +33,7 @@ func ConnectToDb() *sql.DB {
 
 func MigrateTables(c *gin.Context) {
 
-	db :=ConnectToDb()
+	db := ConnectToDb()
 
 	userTable := `CREATE TABLE users (
 		id SERIAL PRIMARY KEY,
@@ -46,7 +43,7 @@ func MigrateTables(c *gin.Context) {
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	  )`
-	categoryTable :=  `CREATE TABLE categories (
+	categoryTable := `CREATE TABLE categories (
 		id SERIAL PRIMARY KEY,
 		name VARCHAR(255) UNIQUE NOT NULL,
 		parent_id INT,
@@ -57,7 +54,7 @@ func MigrateTables(c *gin.Context) {
       	REFERENCES categories(id)
 		ON UPDATE CASCADE 
 		ON DELETE CASCADE 
-	  )` 
+	  )`
 
 	productTable := `CREATE TABLE products (
 		id SERIAL PRIMARY KEY,
@@ -74,7 +71,7 @@ func MigrateTables(c *gin.Context) {
       	REFERENCES categories(id)
 	  )`
 
-	  orderTable := `CREATE TABLE orders (
+	orderTable := `CREATE TABLE orders (
 		id SERIAL PRIMARY KEY,
 		user_id INT NOT NULL,
 		product_id INT NOT NULL,
@@ -87,22 +84,18 @@ func MigrateTables(c *gin.Context) {
 		CONSTRAINT fk_product_id
       	FOREIGN KEY(product_id)
       	REFERENCES products(id)
-
 		`
-	  
-	  tables := map[string]string{
-		"userTable" : userTable ,
-		"categoryTable" : categoryTable ,
-		"productTable" : productTable ,
-		"orderTable" : orderTable ,
-	}  
+	// new table added tables map
 
-	// db.Query(userTable)
-	// db.Query(categoryTable)
-	// db.Query(producttable)
-	for _,value := range tables {
+	tables := map[string]string{
+		"userTable":     userTable,
+		"categoryTable": categoryTable,
+		"productTable":  productTable,
+		"orderTable":    orderTable,
+	}
+
+	for _, value := range tables {
 		db.Exec(value)
-	} 
+	}
 
-	
 }

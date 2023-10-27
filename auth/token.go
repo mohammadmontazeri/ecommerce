@@ -1,4 +1,4 @@
-package model
+package auth
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var token_lifetime = 2 // per hour
+var tokenLifetime = 2 // per hour
 var jwtKey = "Montazeeri"
 
 func GenerateToken(user_id uint) (string, error) {
@@ -16,7 +16,7 @@ func GenerateToken(user_id uint) (string, error) {
 	claim := jwt.MapClaims{}
 	claim["user_id"] = user_id
 	claim["authorized"] = true
-	claim["exp"] = time.Now().Add(time.Hour * time.Duration(token_lifetime)).Unix()
+	claim["exp"] = time.Now().Add(time.Hour * time.Duration(tokenLifetime)).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 
 	return token.SignedString([]byte(jwtKey))
