@@ -6,14 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func JwtApiMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		err := TokenValid(c)
-		if err != nil {
-			c.String(http.StatusUnauthorized, "Unauthorized User")
-			c.Abort()
-			return
-		}
-		c.Next()
+func JwtApiMiddleware(c *gin.Context) {
+	err := TokenValid(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "UnAuthorized user !"})
+		c.Abort()
+		return
 	}
+	c.Next()
+
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"ecommerce/auth"
+	"ecommerce/category"
 	"ecommerce/db"
 	"ecommerce/user"
 
@@ -12,7 +13,6 @@ import (
 
 func main() {
 
-	db.ConnectToDb()
 	r := gin.Default()
 	public := r.Group("/api")
 	public.GET("/migrate", db.MigrateTables)
@@ -20,13 +20,14 @@ func main() {
 	public.POST("/login", user.Login)
 
 	protected := r.Group("/api/admin")
-	protected.Use(auth.JwtApiMiddleware())
+	protected.Use(auth.JwtApiMiddleware)
+
 	protected.GET("/user", user.AuthorizedUser)
 	// category crud
-	// public.POST("/category/create", api.CreateCategory)
-	// public.GET("/category/:id", api.GetCategory)
-	// public.PUT("/category/update/:id", api.UpdateCategory)
-	// public.DELETE("/category/delete/:id", api.DeleteCategory)
+	public.POST("/category/create", category.Create)
+	public.GET("/category/:id", category.Read)
+	protected.PUT("/category/update/:id", category.Update)
+	public.DELETE("/category/delete/:id", category.Delete)
 	// // product crud
 	// public.POST("/product/create", api.CreateProduct)
 	// public.GET("/product/:id", api.GetProduct)

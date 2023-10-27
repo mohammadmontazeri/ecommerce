@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -27,7 +28,7 @@ func TokenValid(c *gin.Context) error {
 	// check token string
 	tokenString := c.Query("token")
 	if tokenString == "" {
-		return nil
+		return errors.New("unAuthorized user !")
 	}
 	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
