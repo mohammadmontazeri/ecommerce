@@ -21,20 +21,14 @@ func main() {
 
 	protected := r.Group("/api/admin")
 	protected.Use(auth.JwtApiMiddleware)
-
 	protected.GET("/user", user.AuthorizedUser)
 	// category crud
-	public.POST("/category/create", category.Create)
-	public.GET("/category/:id", category.Read)
+	protected.POST("/category/create", category.Create)
+	protected.GET("/category/:id", category.Read)
 	protected.PUT("/category/update/:id", category.Update)
-	public.DELETE("/category/delete/:id", category.Delete)
-	// // product crud
-	// public.POST("/product/create", api.CreateProduct)
-	// public.GET("/product/:id", api.GetProduct)
-	// public.PUT("/product/update/:id", api.UpdateProduct)
-	// public.DELETE("/product/delete/:id", api.DeleteProduct)
+	protected.DELETE("/category/delete/:id", category.Delete)
 
-	// public.POST("/upload",api.Upload)
+
 	r.Run(":8080")
 
 }

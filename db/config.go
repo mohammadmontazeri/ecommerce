@@ -85,7 +85,7 @@ func MigrateTables(c *gin.Context) {
       	FOREIGN KEY(product_id)
       	REFERENCES products(id)
 		`
-	// new table added tables map
+	// new table added in tables map
 
 	tables := map[string]string{
 		"userTable":     userTable,

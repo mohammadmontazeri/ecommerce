@@ -17,14 +17,11 @@ type Category struct {
 }
 
 type AddCategoryInput struct {
-	Id        int    `json:"id"`
-	Name      string `json:"name" binding:"required"`
-	Parent_id int    `json:"parent_id"`
+	Category
 }
 
 type UpdateCategoryInput struct {
-	Name      string `json:"name" binding:"required"`
-	Parent_id int    `json:"parent_id"`
+	Category
 }
 
 var DB = db.ConnectToDb()
