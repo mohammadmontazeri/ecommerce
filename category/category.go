@@ -79,18 +79,13 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	// Get Model If Exist
-	err := GetCategoryIfExisted(c, id)
-
-	if err != nil {
-		return
-	}
+	CheckModel(c, id)
 
 	cat := Category{}
 	cat.Name = input.Name
 	cat.Parent_id = input.Parent_id
 
-	_, err = DB.Exec("UPDATE categories SET name=$1,parent_id=$2 WHERE id=$3", cat.Name, cat.Parent_id, id)
+	_, err := DB.Exec("UPDATE categories SET name=$1,parent_id=$2 WHERE id=$3", cat.Name, cat.Parent_id, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	} else {
@@ -100,17 +95,14 @@ func Update(c *gin.Context) {
 
 func Delete(c *gin.Context) {
 
-	id, error := strconv.Atoi(c.Param("id"))
-	if error != nil || id == 0 {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid parameter"})
 		return
 	}
-	// Get Model If Exist
-	err := GetCategoryIfExisted(c, id)
 
-	if err != nil {
-		return
-	}
+	CheckModel(c, id)
+
 	_, err = DB.Exec("DELETE FROM categories WHERE id=$1", id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -119,12 +111,11 @@ func Delete(c *gin.Context) {
 	}
 }
 
-func GetCategoryIfExisted(c *gin.Context, id int) error {
+func CheckModel(c *gin.Context, id int) {
 	queryString := fmt.Sprintf("SELECT id FROM categories WHERE id=%d ", id)
 	err := DB.QueryRow(queryString).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "category not found"})
-		return err
+		return
 	}
-	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"ecommerce/auth"
 	"ecommerce/category"
 	"ecommerce/db"
+	"ecommerce/product"
 	"ecommerce/user"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +15,7 @@ import (
 func main() {
 
 	r := gin.Default()
+
 	public := r.Group("/api")
 	public.GET("/migrate", db.MigrateTables)
 	public.POST("/register", user.Register)
@@ -27,7 +29,11 @@ func main() {
 	protected.GET("/category/:id", category.Read)
 	protected.PUT("/category/update/:id", category.Update)
 	protected.DELETE("/category/delete/:id", category.Delete)
-
+	// product crud
+	protected.POST("/product/create", product.Create)
+	protected.GET("/product/:id", product.Read)
+	protected.PUT("/product/update/:id", product.Update)
+	protected.DELETE("/product/delete/:id", product.Delete)
 
 	r.Run(":8080")
 
