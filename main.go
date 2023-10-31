@@ -4,6 +4,7 @@ import (
 	"ecommerce/auth"
 	"ecommerce/category"
 	"ecommerce/db"
+	"ecommerce/order"
 	"ecommerce/product"
 	"ecommerce/user"
 
@@ -34,6 +35,9 @@ func main() {
 	protected.GET("/product/:id", product.Read)
 	protected.PUT("/product/update/:id", product.Update)
 	protected.DELETE("/product/delete/:id", product.Delete)
+	// order crud 
+	protected.POST("/order/create", order.Create)
+	protected.GET("/order/:id", order.Read)
 
 	r.Run(":8080")
 

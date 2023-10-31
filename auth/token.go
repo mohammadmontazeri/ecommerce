@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var tokenLifetime = 2 // per hour
+var tokenLifetime = 5 // per hour
 var jwtKey = "Montazeeri"
 
 func GenerateToken(user_id uint) (string, error) {

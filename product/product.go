@@ -41,7 +41,7 @@ func Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	picturePath := UploadProductImage(c)
+	picturePath := uploadProductImage(c)
 	product := Product{}
 
 	product.Code = input.Code
@@ -87,9 +87,9 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	CheckModel(c, id)
+	checkModel(c, id)
 
-	picturePath := UploadProductImage(c)
+	picturePath := uploadProductImage(c)
 
 	product := Product{}
 
@@ -116,7 +116,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	CheckModel(c, id)
+	checkModel(c, id)
 
 	_, err = DB.Exec("DELETE FROM products WHERE id=$1", id)
 	if err != nil {
@@ -126,7 +126,7 @@ func Delete(c *gin.Context) {
 	}
 }
 
-func CheckModel(c *gin.Context, id int) {
+func checkModel(c *gin.Context, id int) {
 	queryString := fmt.Sprintf("SELECT id FROM products WHERE id=%d ", id)
 	err := DB.QueryRow(queryString).Scan(&id)
 	if err != nil {
@@ -135,7 +135,7 @@ func CheckModel(c *gin.Context, id int) {
 	}
 }
 
-func UploadProductImage(c *gin.Context) string {
+func uploadProductImage(c *gin.Context) string {
 	file, _ := c.FormFile("picture")
 	log.Println(file.Filename)
 	filePath := filepath.Join("assets/image", file.Filename)
