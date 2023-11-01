@@ -5,7 +5,6 @@ import (
 	"ecommerce/db"
 	"fmt"
 	"html"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -34,13 +33,13 @@ func (u *User) BeforeInsert() error {
 	return nil
 }
 
-func (u *User) Insert(c *gin.Context) {
+func (u *User) Insert(c *gin.Context) error {
 
 	_, err := DB.Exec("INSERT INTO  users(username,email,password) VALUES($1,$2,$3)", u.Username, u.Email, u.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return err
 	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "User Registration Is Ok"})
+		return nil
 	}
 }
 

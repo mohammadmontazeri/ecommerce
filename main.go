@@ -35,9 +35,11 @@ func main() {
 	protected.GET("/product/:id", product.Read)
 	protected.PUT("/product/update/:id", product.Update)
 	protected.DELETE("/product/delete/:id", product.Delete)
-	// order crud 
+	// order crud
 	protected.POST("/order/create", order.Create)
 	protected.GET("/order/:id", order.Read)
+	protected.PUT("/order/update/:id", order.Update)
+	protected.DELETE("/order/delete/:id", order.Delete)
 
 	r.Run(":8080")
 

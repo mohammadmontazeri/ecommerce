@@ -34,9 +34,19 @@ func Register(c *gin.Context) {
 	u.Password = input.Password
 
 	// before insert user
-	u.BeforeInsert()
+	err := u.BeforeInsert()
+	if err!=nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	// insert user
-	u.Insert(c)
+	err = u.Insert(c)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}else{
+		c.JSON(http.StatusOK, gin.H{"message": "User Registration is successful"})
+
+	}
 
 }
 

@@ -117,5 +117,6 @@ func MigrateTables(c *gin.Context) {
 
 	if err!=nil {
 		c.JSON(http.StatusInternalServerError,gin.H{"error" : err.Error()})
+		return
 	}
 }
