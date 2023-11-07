@@ -15,7 +15,6 @@ import (
 
 func main() {
 
-	// db.ConnectToDBGorm().AutoMigrate(&db.User{}, &db.Category{}, &db.Product{}, &db.Order{})
 
 	r := gin.Default()
 
