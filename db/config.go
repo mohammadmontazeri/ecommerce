@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 const (
@@ -115,8 +117,18 @@ func MigrateTables(c *gin.Context) {
 
 	}
 
-	if err!=nil {
-		c.JSON(http.StatusInternalServerError,gin.H{"error" : err.Error()})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+}
+
+func ConnectToDBGorm() *gorm.DB {
+	connstring := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%d sslmode=disable", user, "ecommerce2", password, host, port)
+	db, err := gorm.Open(postgres.Open(connstring), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Database Connection Failed !")
+	}
+
+	return db
 }

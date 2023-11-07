@@ -2,32 +2,44 @@ package category
 
 import (
 	"ecommerce/db"
-	"fmt"
+
 	"net/http"
 
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Category struct {
-	Id        int    `json:"id"`
-	Name      string `json:"name" binding:"required"`
-	Parent_id int    `json:"parent_id"`
+	ID       int    `json:"id"`
+	Name     string `binding:"required" json:"name"`
+	ParentID int    `json:"parent_id"`
 }
 
-type AddCategoryInput struct {
+type CategoryInput struct {
 	Category
 }
 
-type UpdateCategoryInput struct {
-	Category
+var DB = db.ConnectToDBGorm()
+
+type Connector interface {
+	ConnectDB() *gorm.DB
 }
 
-var DB = db.ConnectToDb()
+func (cm CategoryModel) ConnectDB() *gorm.DB {
+	return db.ConnectToDBGorm()
+}
+func NewStruct(c Connector) *CategoryModel {
+	return &CategoryModel{connector: c}
+}
 
-func Create(c *gin.Context) {
-	var input AddCategoryInput
+type CategoryModel struct {
+	connector Connector
+}
+
+func (cm *CategoryModel) Create(c *gin.Context) {
+	var input Category
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,18 +49,19 @@ func Create(c *gin.Context) {
 	cat := Category{}
 
 	cat.Name = input.Name
-	cat.Parent_id = input.Parent_id
+	cat.ParentID = input.ParentID
 
-	_, err := DB.Exec("INSERT INTO  categories(name,parent_id) VALUES($1,$2)", cat.Name, cat.Parent_id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := cm.connector.ConnectDB().Create(&cat)
+
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "Category add successful"})
 	}
 
 }
 
-func Read(c *gin.Context) {
+func (cm *CategoryModel) Read(c *gin.Context) {
 
 	var queryParameter = c.Param("id")
 	intQueryParameter, err := strconv.Atoi(queryParameter)
@@ -63,21 +76,18 @@ func Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parmeter not set"})
 		return
 	}
-
-	queryString := fmt.Sprintf("SELECT * FROM categories WHERE id=%d ", intQueryParameter)
-	err = DB.QueryRow(queryString).Scan(&cat.Id, &cat.Name, &cat.Parent_id)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := cm.connector.ConnectDB().Find(&cat, intQueryParameter)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"category": cat})
 
 }
 
-func Update(c *gin.Context) {
+func (cm *CategoryModel) Update(c *gin.Context) {
 
-	var input UpdateCategoryInput
+	var input CategoryInput
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -92,19 +102,14 @@ func Update(c *gin.Context) {
 
 	cat := Category{}
 	cat.Name = input.Name
-	cat.Parent_id = input.Parent_id
+	cat.ParentID = input.ParentID
 
-	res, err := DB.Exec("UPDATE categories SET name=$1,parent_id=$2 WHERE id=$3", cat.Name, cat.Parent_id, id)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := cm.connector.ConnectDB().Model(&cat).Where("id", id).Updates(cat)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
 	}
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	rowsAffected := res.RowsAffected
 	if rowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
 		return
@@ -114,7 +119,7 @@ func Update(c *gin.Context) {
 
 }
 
-func Delete(c *gin.Context) {
+func (cm *CategoryModel) Delete(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -123,17 +128,12 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	res, err := DB.Exec("DELETE FROM categories WHERE id=$1", id)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := cm.connector.ConnectDB().Delete(&Category{}, id)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
 	}
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	rowsAffected := res.RowsAffected
 	if rowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
 		return

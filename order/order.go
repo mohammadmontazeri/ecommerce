@@ -1,87 +1,94 @@
 package order
 
 import (
-	"context"
+	// "context"
 	"database/sql"
 	"ecommerce/db"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-type Order struct {
-	Id          int     `json:"id"`
-	User_id     int     `json:"user_id" binding:"required"`
-	Products_id []int   `json:"products_id" binding:"required"`
-	Code        string  `json:"code"    binding:"required"`
-	Price       float64 `json:"price"   binding:"required"`
-	Status      string  `json:"status"  binding:"required"`
+type OrderWithProducts struct {
+	Id         int     `json:"id"`
+	UserID     int     `json:"user_id" binding:"required"`
+	ProductsID []int   `json:"products_id" binding:"required"`
+	Code       string  `json:"code"    binding:"required"`
+	Price      float64 `json:"price"   binding:"required"`
+	Status     string  `json:"status"  binding:"required"`
 }
 
-type GetOrder struct {
-	Id      int     `json:"id"`
-	User_id int     `json:"user_id" binding:"required"`
-	Code    string  `json:"code"    binding:"required"`
-	Price   float64 `json:"price"   binding:"required"`
-	Status  string  `json:"status"  binding:"required"`
+type Order struct {
+	Id     int     `json:"id"`
+	UserID int     `json:"user_id" binding:"required"`
+	Code   string  `json:"code"    binding:"required"`
+	Price  float64 `json:"price"   binding:"required"`
+	Status string  `json:"status"  binding:"required"`
 }
 type OrderProducts struct {
-	Product_id int
+	ProductID int
 }
 
 type GetOrderWithProduct struct {
-	Order         GetOrder
+	Order         Order
 	OrderProducts []OrderProducts
 }
 
-var DB = db.ConnectToDb()
-var ctx = context.Background()
+type Connector interface {
+	ConnectDB() *gorm.DB
+}
 
-func Create(c *gin.Context) {
-	var tx, err = DB.BeginTx(ctx, nil)
-	var input Order
+func (cm OrderModel) ConnectDB() *gorm.DB {
+	return db.ConnectToDBGorm()
+}
+func NewStruct(c Connector) *OrderModel {
+	return &OrderModel{connector: c}
+}
+
+type OrderModel struct {
+	connector Connector
+}
+
+func (om *OrderModel) Create(c *gin.Context) {
+	var tx = om.connector.ConnectDB().Begin()
+	var input OrderWithProducts
 	defer tx.Rollback()
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if len(input.Products_id) == 0 {
+	if len(input.ProductsID) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "products are required"})
 		return
 	}
-	order := Order{}
+	order := db.Order{}
 
 	order.Code = input.Code
-	order.User_id = input.User_id
+	order.UserID = input.UserID
 	order.Price = input.Price
 	order.Status = input.Status
 
-	// insert order without products
-	err = insertOrderWithoutProducts(tx, order)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	// get order for its id
-	orderValue, err := getOrderFromCode(tx, order.Code)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	// insert realtions in pivot table
-	err = addOrderToPivotTable(tx, input.Products_id, orderValue.Id)
+	order, err := insertOrderWithoutProducts(tx, order)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err = tx.Commit(); err != nil {
+	err = addOrderToPivotTable(tx, input.ProductsID, order)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	commit := tx.Commit()
+
+	if commit.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": commit.Error.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "order add successful"})
 	}
@@ -99,15 +106,13 @@ func Read(c *gin.Context) {
 		return
 	}
 
-	// get order without products
-	var orderWithoutProduct GetOrder
+	var orderWithoutProduct Order
 	orderWithoutProduct, err = getOrderFromId(tx, intQueryParameter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// get order products
 	var orderProducts []OrderProducts
 	orderProducts, err = getOrderProducts(tx, intQueryParameter)
 	if err != nil {
@@ -133,7 +138,7 @@ func Read(c *gin.Context) {
 func Update(c *gin.Context) {
 	var tx, _ = DB.BeginTx(ctx, nil) // for db trnsaction
 	defer tx.Rollback()
-	var input Order
+	var input OrderWithProducts
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -145,7 +150,7 @@ func Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if len(input.Products_id) == 0 {
+	if len(input.ProductsID) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "products are required field"})
 		return
 	}
@@ -153,11 +158,11 @@ func Update(c *gin.Context) {
 	order := Order{}
 
 	order.Code = input.Code
-	order.User_id = input.User_id
+	order.UserID = input.UserID
 	order.Price = input.Price
 	order.Status = input.Status
 
-	res, err := tx.ExecContext(ctx, "UPDATE orders SET code=$1,user_id=$2,price=$3,status=$4 WHERE id=$5", order.Code, order.User_id, order.Price, order.Status, id)
+	res, err := tx.ExecContext(ctx, "UPDATE orders SET code=$1,user_id=$2,price=$3,status=$4 WHERE id=$5", order.Code, order.UserID, order.Price, order.Status, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -172,7 +177,6 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	// delete expired order products
 	err = deleteOrderProduct(tx, id)
 	if err != nil {
 		if err.Error() == "no row found" {
@@ -182,8 +186,8 @@ func Update(c *gin.Context) {
 		}
 		return
 	}
-	// insert order products to pivot table after delete
-	err = addOrderToPivotTable(tx, input.Products_id, id)
+
+	err = addOrderToPivotTable(tx, input.ProductsID, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -207,7 +211,6 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	// delete order products
 	err = deleteOrderProduct(tx, id)
 	if err != nil {
 		if err.Error() == "no row found" {
@@ -258,45 +261,36 @@ func deleteOrderProduct(tx *sql.Tx, id int) error {
 	return nil
 }
 
-func addOrderToPivotTable(tx *sql.Tx, products_id []int, order_id int) error {
-	fmt.Println(products_id)
-	var err error
-	for _, value := range products_id {
-		if _, err = tx.ExecContext(ctx, "INSERT INTO orders_products(product_id,order_id) VALUES($1,$2)", value, order_id); err != nil {
-			return err
-		}
+func addOrderToPivotTable(tx *gorm.DB, productsID []int, order db.Order) error {
+
+	err := tx.Model(&order).Association("Products").Append([]db.Product{})
+
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func getOrderFromCode(tx *sql.Tx, code string) (GetOrder, error) {
-	var order GetOrder
-	if err := tx.QueryRowContext(ctx, "SELECT id,user_id,code,price,status FROM orders WHERE code=$1 ", code).Scan(&order.Id, &order.User_id, &order.Code, &order.Price, &order.Status); err != nil {
-		return order, err
-	}
-	return order, nil
-}
-
-func getOrderFromId(tx *sql.Tx, id int) (GetOrder, error) {
-	var order GetOrder
-	err := tx.QueryRowContext(ctx, "SELECT id,user_id,code,price,status FROM orders WHERE id=$1 ", id).Scan(&order.Id, &order.User_id, &order.Code, &order.Price, &order.Status)
+func getOrderFromId(tx *sql.Tx, id int) (Order, error) {
+	var order Order
+	err := tx.QueryRowContext(ctx, "SELECT id,user_id,code,price,status FROM orders WHERE id=$1 ", id).Scan(&order.Id, &order.UserID, &order.Code, &order.Price, &order.Status)
 	if err != nil {
 		return order, err
 	}
 	return order, nil
 }
 
-func getOrderProducts(tx *sql.Tx, order_id int) ([]OrderProducts, error) {
+func getOrderProducts(tx *sql.Tx, orderID int) ([]OrderProducts, error) {
 	products := []OrderProducts{}
-	rows, err := tx.QueryContext(ctx, "SELECT product_id FROM orders_products WHERE order_id=$1", order_id)
+	rows, err := tx.QueryContext(ctx, "SELECT product_id FROM orders_products WHERE order_id=$1", orderID)
 
 	if err != nil {
 		return products, err
 	}
 	for rows.Next() {
 		o := OrderProducts{}
-		err = rows.Scan(&o.Product_id)
+		err = rows.Scan(&o.ProductID)
 		if err != nil {
 			return products, err
 		}
@@ -305,10 +299,10 @@ func getOrderProducts(tx *sql.Tx, order_id int) ([]OrderProducts, error) {
 	return products, nil
 }
 
-func insertOrderWithoutProducts(tx *sql.Tx, order Order) error {
+func insertOrderWithoutProducts(tx *gorm.DB, order db.Order) (db.Order, error) {
 
-	if _, err := tx.ExecContext(ctx, `INSERT INTO orders(code,user_id,price,status) VALUES($1,$2,$3,$4)`, order.Code, order.User_id, order.Price, order.Status); err != nil {
-		return err
+	if res := tx.Create(&order); res.Error != nil {
+		return order, res.Error
 	}
-	return nil
+	return order, nil
 }

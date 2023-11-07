@@ -12,22 +12,22 @@ import (
 )
 
 type ProductInput struct {
-	Id          int                   `json:"id"`
-	Code        string                `form:"code" json:"code" binding:"required"`
-	Title       string                `form:"title" json:"title" binding:"required"`
-	Price       float64               `form:"price" json:"price" binding:"required"`
-	Picture     *multipart.FileHeader `form:"picture" binding:"required"`
-	Detail      string                `form:"detail" json:"detail" binding:"required"`
-	Category_id int                   `form:"category_id" json:"category_id" binding:"required"`
+	Id         int                   `json:"id"`
+	Code       string                `form:"code" json:"code" binding:"required"`
+	Title      string                `form:"title" json:"title" binding:"required"`
+	Price      float64               `form:"price" json:"price" binding:"required"`
+	Picture    *multipart.FileHeader `form:"picture" binding:"required"`
+	Detail     string                `form:"detail" json:"detail" binding:"required"`
+	CategoryID int                   `form:"category_id" json:"category_id" binding:"required"`
 }
 type Product struct {
-	Id          int     ` json:"id"`
-	Code        string  `form:"code" json:"code" binding:"required"`
-	Title       string  `form:"title" json:"title" binding:"required"`
-	Price       float64 `form:"price" json:"price" binding:"required"`
-	Picture     string  `form:"picture" binding:"required"`
-	Detail      string  `form:"detail" json:"detail" binding:"required"`
-	Category_id int     `form:"category_id" json:"category_id" binding:"required"`
+	Id         int     ` json:"id"`
+	Code       string  `form:"code" json:"code" binding:"required"`
+	Title      string  `form:"title" json:"title" binding:"required"`
+	Price      float64 `form:"price" json:"price" binding:"required"`
+	Picture    string  `form:"picture" binding:"required"`
+	Detail     string  `form:"detail" json:"detail" binding:"required"`
+	CategoryID int     `form:"category_id" json:"category_id" binding:"required"`
 }
 
 var DB = db.ConnectToDb()
@@ -52,9 +52,9 @@ func Create(c *gin.Context) {
 	product.Title = input.Title
 	product.Price = input.Price
 	product.Detail = input.Detail
-	product.Category_id = input.Category_id
+	product.CategoryID = input.CategoryID
 
-	_, err = DB.Exec("INSERT INTO  products(code,title,price,picture,detail,category_id) VALUES($1,$2,$3,$4,$5,$6)", product.Code, product.Title, product.Price, picturePath, product.Detail, product.Category_id)
+	_, err = DB.Exec("INSERT INTO  products(code,title,price,picture,detail,category_id) VALUES($1,$2,$3,$4,$5,$6)", product.Code, product.Title, product.Price, picturePath, product.Detail, product.CategoryID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	} else {
@@ -66,15 +66,14 @@ func Read(c *gin.Context) {
 	var queryParameter = c.Param("id")
 	intQueryParameter, err := strconv.Atoi(queryParameter)
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	var product Product
-	
 
 	queryString := fmt.Sprintf("SELECT * FROM products WHERE id=%d ", intQueryParameter)
-	err = DB.QueryRow(queryString).Scan(&product.Id, &product.Title, &product.Code, &product.Price, &product.Picture, &product.Detail, &product.Category_id)
+	err = DB.QueryRow(queryString).Scan(&product.Id, &product.Title, &product.Code, &product.Price, &product.Picture, &product.Detail, &product.CategoryID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -110,9 +109,9 @@ func Update(c *gin.Context) {
 	product.Title = input.Title
 	product.Price = input.Price
 	product.Detail = input.Detail
-	product.Category_id = input.Category_id
+	product.CategoryID = input.CategoryID
 
-	res, err := DB.Exec("UPDATE products SET title=$1,code=$2,price=$3,detail=$4,category_id=$5,picture=$6 WHERE id=$7", product.Title, product.Code, product.Price, product.Detail, product.Category_id, picturePath, id)
+	res, err := DB.Exec("UPDATE products SET title=$1,code=$2,price=$3,detail=$4,category_id=$5,picture=$6 WHERE id=$7", product.Title, product.Code, product.Price, product.Detail, product.CategoryID, picturePath, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
