@@ -1,5 +1,3 @@
-hello:
-	echo "Hello"
 
 fmt:
 	go fmt

@@ -1,38 +1,23 @@
 package product
 
 import (
-	"ecommerce/db"
-	"fmt"
-	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-type ProductInput struct {
-	Id         int                   `json:"id"`
-	Code       string                `form:"code" json:"code" binding:"required"`
-	Title      string                `form:"title" json:"title" binding:"required"`
-	Price      float64               `form:"price" json:"price" binding:"required"`
-	Picture    *multipart.FileHeader `form:"picture" binding:"required"`
-	Detail     string                `form:"detail" json:"detail" binding:"required"`
-	CategoryID int                   `form:"category_id" json:"category_id" binding:"required"`
-}
-type Product struct {
-	Id         int     ` json:"id"`
-	Code       string  `form:"code" json:"code" binding:"required"`
-	Title      string  `form:"title" json:"title" binding:"required"`
-	Price      float64 `form:"price" json:"price" binding:"required"`
-	Picture    string  `form:"picture" binding:"required"`
-	Detail     string  `form:"detail" json:"detail" binding:"required"`
-	CategoryID int     `form:"category_id" json:"category_id" binding:"required"`
+func New(db *gorm.DB) *ProductModel {
+	return &ProductModel{db: db}
 }
 
-var DB = db.ConnectToDb()
+type ProductModel struct {
+	db *gorm.DB
+}
 
-func Create(c *gin.Context) {
+func (pm *ProductModel) Create(c *gin.Context) {
 
 	var input ProductInput
 
@@ -53,16 +38,18 @@ func Create(c *gin.Context) {
 	product.Price = input.Price
 	product.Detail = input.Detail
 	product.CategoryID = input.CategoryID
+	product.Picture = picturePath
 
-	_, err = DB.Exec("INSERT INTO  products(code,title,price,picture,detail,category_id) VALUES($1,$2,$3,$4,$5,$6)", product.Code, product.Title, product.Price, picturePath, product.Detail, product.CategoryID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := pm.db.Create(&product)
+
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "product add successful"})
 	}
 }
 
-func Read(c *gin.Context) {
+func (pm *ProductModel) Read(c *gin.Context) {
 	var queryParameter = c.Param("id")
 	intQueryParameter, err := strconv.Atoi(queryParameter)
 
@@ -72,18 +59,17 @@ func Read(c *gin.Context) {
 	}
 	var product Product
 
-	queryString := fmt.Sprintf("SELECT * FROM products WHERE id=%d ", intQueryParameter)
-	err = DB.QueryRow(queryString).Scan(&product.Id, &product.Title, &product.Code, &product.Price, &product.Picture, &product.Detail, &product.CategoryID)
+	res := pm.db.Find(&product, intQueryParameter)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"product": product})
 
 }
 
-func Update(c *gin.Context) {
+func (pm *ProductModel) Update(c *gin.Context) {
 	var input ProductInput
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -110,25 +96,24 @@ func Update(c *gin.Context) {
 	product.Price = input.Price
 	product.Detail = input.Detail
 	product.CategoryID = input.CategoryID
+	product.Picture = picturePath
 
-	res, err := DB.Exec("UPDATE products SET title=$1,code=$2,price=$3,detail=$4,category_id=$5,picture=$6 WHERE id=$7", product.Title, product.Code, product.Price, product.Detail, product.CategoryID, picturePath, id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res := pm.db.Model(&product).Where("id", id).Updates(product)
+
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 	}
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	rowsAffected := res.RowsAffected
 	if rowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "no row found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "row updated successful"})
 }
 
-func Delete(c *gin.Context) {
+func (pm *ProductModel) Delete(c *gin.Context) {
+	var product Product
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -136,17 +121,13 @@ func Delete(c *gin.Context) {
 		return
 	}
 
-	res, err := DB.Exec("DELETE FROM products WHERE id=$1", id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	res := pm.db.Delete(&product, id)
 
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+		return
+	}
+	rowsAffected := res.RowsAffected
 	if rowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
 		return

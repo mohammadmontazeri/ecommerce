@@ -1,8 +1,6 @@
 package category
 
 import (
-	"ecommerce/db"
-
 	"net/http"
 
 	"strconv"
@@ -11,31 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type Category struct {
-	ID       int    `json:"id"`
-	Name     string `binding:"required" json:"name"`
-	ParentID int    `json:"parent_id"`
-}
-
-type CategoryInput struct {
-	Category
-}
-
-var DB = db.ConnectToDBGorm()
-
-type Connector interface {
-	ConnectDB() *gorm.DB
-}
-
-func (cm CategoryModel) ConnectDB() *gorm.DB {
-	return db.ConnectToDBGorm()
-}
-func NewStruct(c Connector) *CategoryModel {
-	return &CategoryModel{connector: c}
+func New(db *gorm.DB) *CategoryModel {
+	return &CategoryModel{db: db}
 }
 
 type CategoryModel struct {
-	connector Connector
+	db *gorm.DB
 }
 
 func (cm *CategoryModel) Create(c *gin.Context) {
@@ -51,7 +30,7 @@ func (cm *CategoryModel) Create(c *gin.Context) {
 	cat.Name = input.Name
 	cat.ParentID = input.ParentID
 
-	res := cm.connector.ConnectDB().Create(&cat)
+	res := cm.db.Create(&cat)
 
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
@@ -76,7 +55,7 @@ func (cm *CategoryModel) Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parmeter not set"})
 		return
 	}
-	res := cm.connector.ConnectDB().Find(&cat, intQueryParameter)
+	res := cm.db.Find(&cat, intQueryParameter)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
@@ -87,7 +66,7 @@ func (cm *CategoryModel) Read(c *gin.Context) {
 
 func (cm *CategoryModel) Update(c *gin.Context) {
 
-	var input CategoryInput
+	var input Category
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -104,7 +83,7 @@ func (cm *CategoryModel) Update(c *gin.Context) {
 	cat.Name = input.Name
 	cat.ParentID = input.ParentID
 
-	res := cm.connector.ConnectDB().Model(&cat).Where("id", id).Updates(cat)
+	res := cm.db.Model(&cat).Where("id", id).Updates(cat)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
@@ -121,6 +100,7 @@ func (cm *CategoryModel) Update(c *gin.Context) {
 
 func (cm *CategoryModel) Delete(c *gin.Context) {
 
+	var cat Category
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -128,7 +108,7 @@ func (cm *CategoryModel) Delete(c *gin.Context) {
 		return
 	}
 
-	res := cm.connector.ConnectDB().Delete(&Category{}, id)
+	res := cm.db.Delete(&cat, id)
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return

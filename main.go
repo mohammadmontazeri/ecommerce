@@ -9,38 +9,39 @@ import (
 	"ecommerce/user"
 
 	"github.com/gin-gonic/gin"
-
-	_ "github.com/lib/pq"
 )
 
 func main() {
 
+	var DB = db.ConnectToDB()
 
 	r := gin.Default()
-
+	var userWithDB = user.New(DB)
 	public := r.Group("/api")
-	public.GET("/migrate", db.MigrateTables)
-	public.POST("/register", user.NewStruct(user.UserModel{}).Register)
-	public.POST("/login", user.NewStruct(user.UserModel{}).Login)
+	public.POST("/register", userWithDB.Register)
+	public.POST("/login", userWithDB.Login)
 
 	protected := r.Group("/api/admin")
 	protected.Use(auth.JwtApiMiddleware)
 	protected.GET("/user", user.AuthorizedUser)
 	// category crud
-	protected.POST("/category/create", category.NewStruct(category.CategoryModel{}).Create)
-	protected.GET("/category/:id", category.NewStruct(category.CategoryModel{}).Read)
-	protected.PUT("/category/update/:id", category.NewStruct(category.CategoryModel{}).Update)
-	protected.DELETE("/category/delete/:id", category.NewStruct(category.CategoryModel{}).Delete)
+	var categoryWithDB = category.New(DB)
+	protected.POST("/category/create", categoryWithDB.Create)
+	protected.GET("/category/:id", categoryWithDB.Read)
+	protected.PUT("/category/update/:id", categoryWithDB.Update)
+	protected.DELETE("/category/delete/:id", categoryWithDB.Delete)
 	// product crud
-	protected.POST("/product/create", product.Create)
-	protected.GET("/product/:id", product.Read)
-	protected.PUT("/product/update/:id", product.Update)
-	protected.DELETE("/product/delete/:id", product.Delete)
+	var prodcutWithDB = product.New(DB)
+	protected.POST("/product/create", prodcutWithDB.Create)
+	protected.GET("/product/:id", prodcutWithDB.Read)
+	protected.PUT("/product/update/:id", prodcutWithDB.Update)
+	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
 	// order crud
-	protected.POST("/order/create", order.NewStruct(order.OrderModel{}).Create)
-	protected.GET("/order/:id", order.Read)
-	protected.PUT("/order/update/:id", order.Update)
-	protected.DELETE("/order/delete/:id", order.Delete)
+	var orderWithDB = order.New(DB)
+	protected.POST("/order/create", orderWithDB.Create)
+	protected.GET("/order/:id", orderWithDB.Read)
+	protected.PUT("/order/update/:id", orderWithDB.Update)
+	protected.DELETE("/order/delete/:id", orderWithDB.Delete)
 
 	r.Run(":8080")
 
