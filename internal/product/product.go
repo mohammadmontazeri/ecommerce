@@ -1,11 +1,15 @@
 package product
 
 import (
+	"context"
+	"ecommerce/configs"
+
 	"net/http"
 	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/cache/v8"
 	"gorm.io/gorm"
 )
 
@@ -25,7 +29,7 @@ func (pm *ProductModel) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	picturePath, err := uploadProductImage(c)
+	picturePath, err := UploadProductImage(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -65,6 +69,21 @@ func (pm *ProductModel) Read(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
 		return
 	}
+
+	_, myCache := configs.ConnectToRedisForCache()
+	ctx := context.Background()
+	id := c.Param("id")
+
+	err = myCache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   id,
+		Value: product,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"product": product})
 
 }
@@ -83,7 +102,7 @@ func (pm *ProductModel) Update(c *gin.Context) {
 		return
 	}
 
-	picturePath, err := uploadProductImage(c)
+	picturePath, err := UploadProductImage(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -137,11 +156,15 @@ func (pm *ProductModel) Delete(c *gin.Context) {
 
 }
 
-func uploadProductImage(c *gin.Context) (string, error) {
+func UploadProductImage(c *gin.Context) (string, error) {
 	file, err := c.FormFile("picture")
 	filePath := filepath.Join("assets/image", file.Filename)
 	c.SaveUploadedFile(file, filePath)
 
 	return filePath, err
+
+}
+
+func SetRedisCache() {
 
 }

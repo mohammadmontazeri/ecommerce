@@ -1,13 +1,16 @@
-package db
+package configs
 
 import (
-	"ecommerce/category"
-	"ecommerce/order"
-	"ecommerce/product"
-	userPackage "ecommerce/user"
+	"ecommerce/internal/category"
+	"ecommerce/internal/order"
+	"ecommerce/internal/product"
+
+	userPackage "ecommerce/internal/user"
 	"fmt"
 	"log"
 
+	"github.com/go-redis/cache/v8"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -27,7 +30,7 @@ func ConnectToDB() *gorm.DB {
 		log.Fatalf("Database Connection Failed !")
 	}
 
-	Migrate(db)
+	// Migrate(db)
 
 	return db
 }
@@ -39,4 +42,15 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&product.Product{})
 	db.AutoMigrate(&order.Order{})
 
+}
+
+func ConnectToRedisForCache() (*redis.Client, *cache.Cache) {
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	mycache := cache.New(&cache.Options{
+		Redis: rdb,
+	})
+
+	return rdb, mycache
 }

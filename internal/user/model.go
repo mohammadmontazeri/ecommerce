@@ -1,7 +1,7 @@
 package user
 
 import (
-	"ecommerce/order"
+	"ecommerce/internal/order"
 
 	"gorm.io/gorm"
 )

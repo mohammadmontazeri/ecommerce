@@ -1,7 +1,7 @@
 package order
 
 import (
-	"ecommerce/product"
+	"ecommerce/internal/product"
 
 	"gorm.io/gorm"
 )

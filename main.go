@@ -2,18 +2,19 @@ package main
 
 import (
 	"ecommerce/auth"
-	"ecommerce/category"
-	"ecommerce/db"
-	"ecommerce/order"
-	"ecommerce/product"
-	"ecommerce/user"
+	"ecommerce/configs"
+	"ecommerce/internal/category"
+	"ecommerce/internal/middleware"
+	"ecommerce/internal/order"
+	"ecommerce/internal/product"
+	"ecommerce/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	var DB = db.ConnectToDB()
+	var DB = configs.ConnectToDB()
 
 	r := gin.Default()
 	var userWithDB = user.New(DB)
@@ -32,8 +33,10 @@ func main() {
 	protected.DELETE("/category/delete/:id", categoryWithDB.Delete)
 	// product crud
 	var prodcutWithDB = product.New(DB)
+	var prodcutCache = protected.Use(middleware.VerifyProductCache)
+
 	protected.POST("/product/create", prodcutWithDB.Create)
-	protected.GET("/product/:id", prodcutWithDB.Read)
+	prodcutCache.GET("/product/:id", prodcutWithDB.Read)
 	protected.PUT("/product/update/:id", prodcutWithDB.Update)
 	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
 	// order crud
