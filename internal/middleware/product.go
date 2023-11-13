@@ -12,7 +12,12 @@ import (
 
 func VerifyProductCache(c *gin.Context) {
 	var prodcut product.Product
-	_, myCache := configs.ConnectToRedisForCache()
+	myCache, err := configs.ConnectToRedisForCache()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Abort()
+		return
+	}
 	ctx := context.Background()
 	id := c.Param("id")
 

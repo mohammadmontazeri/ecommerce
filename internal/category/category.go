@@ -1,6 +1,7 @@
 package category
 
 import (
+	"ecommerce/configs"
 	"net/http"
 
 	"strconv"
@@ -15,6 +16,10 @@ func New(db *gorm.DB) *CategoryModel {
 
 type CategoryModel struct {
 	db *gorm.DB
+}
+
+type Category struct {
+	configs.Category
 }
 
 func (cm *CategoryModel) Create(c *gin.Context) {

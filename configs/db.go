@@ -1,11 +1,8 @@
 package configs
 
 import (
-	"ecommerce/internal/category"
-	"ecommerce/internal/order"
-	"ecommerce/internal/product"
+	"context"
 
-	userPackage "ecommerce/internal/user"
 	"fmt"
 	"log"
 
@@ -30,27 +27,43 @@ func ConnectToDB() *gorm.DB {
 		log.Fatalf("Database Connection Failed !")
 	}
 
-	// Migrate(db)
+	Migrate(db)
 
 	return db
 }
 
 func Migrate(db *gorm.DB) {
 
-	db.AutoMigrate(&userPackage.User{})
-	db.AutoMigrate(&category.Category{})
-	db.AutoMigrate(&product.Product{})
-	db.AutoMigrate(&order.Order{})
+	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Category{})
+	db.AutoMigrate(&Product{})
+	db.AutoMigrate(&Order{})
 
 }
 
-func ConnectToRedisForCache() (*redis.Client, *cache.Cache) {
+func ConnectToRedis() (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
-	mycache := cache.New(&cache.Options{
+
+	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
+		return nil, err
+	} else {
+		return rdb, err
+	}
+
+}
+
+func ConnectToRedisForCache() (*cache.Cache, error) {
+
+	rdb, err := ConnectToRedis()
+	if err != nil {
+		return nil, err
+	}
+	myCache := cache.New(&cache.Options{
 		Redis: rdb,
 	})
 
-	return rdb, mycache
+	return myCache, nil
 }
+

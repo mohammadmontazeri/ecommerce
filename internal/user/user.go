@@ -2,6 +2,7 @@ package user
 
 import (
 	"ecommerce/auth"
+	"ecommerce/configs"
 	"fmt"
 	"html"
 	"net/http"
@@ -18,6 +19,10 @@ func New(db *gorm.DB) *UserModel {
 
 type UserModel struct {
 	db *gorm.DB
+}
+
+type User struct {
+	configs.User
 }
 
 func (um *UserModel) Register(c *gin.Context) {

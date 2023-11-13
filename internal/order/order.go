@@ -1,6 +1,7 @@
 package order
 
 import (
+	"ecommerce/configs"
 	"errors"
 	"net/http"
 	"strconv"
@@ -8,6 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+type OrderWithProducts struct {
+	ID         int     `json:"id"`
+	UserID     int     `json:"user_id" binding:"required"`
+	ProductsID []int   `json:"products_id" binding:"required"`
+	Code       string  `json:"code"    binding:"required"`
+	Price      float64 `json:"price"   binding:"required"`
+	Status     string  `json:"status"  binding:"required"`
+}
+
+type Order struct {
+	configs.Order
+}
 
 func New(db *gorm.DB) *OrderModel {
 	return &OrderModel{db: db}

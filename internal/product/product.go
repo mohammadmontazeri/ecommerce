@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"ecommerce/configs"
+	"mime/multipart"
 
 	"net/http"
 	"path/filepath"
@@ -12,6 +13,20 @@ import (
 	"github.com/go-redis/cache/v8"
 	"gorm.io/gorm"
 )
+
+type ProductInput struct {
+	Id         int                   `json:"id"`
+	Code       string                `form:"code" json:"code" binding:"required"`
+	Title      string                `form:"title" json:"title" binding:"required"`
+	Price      float64               `form:"price" json:"price" binding:"required"`
+	Picture    *multipart.FileHeader `form:"picture" binding:"required"`
+	Detail     string                `form:"detail" json:"detail" binding:"required"`
+	CategoryID uint                  `form:"category_id" json:"category_id" binding:"required"`
+}
+
+type Product struct {
+	configs.Product
+}
 
 func New(db *gorm.DB) *ProductModel {
 	return &ProductModel{db: db}
@@ -70,7 +85,11 @@ func (pm *ProductModel) Read(c *gin.Context) {
 		return
 	}
 
-	_, myCache := configs.ConnectToRedisForCache()
+	myCache, err := configs.ConnectToRedisForCache()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	ctx := context.Background()
 	id := c.Param("id")
 
