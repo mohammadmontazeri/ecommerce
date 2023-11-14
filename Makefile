@@ -1,9 +1,11 @@
-
+lint:
+	golangci-lint run
+	
 fmt:
-	go fmt
+	go fmt ecommerce/...
 
 run:
-	go run main.go
+	go run cmd/main.go
 
 
 all: fmt run

@@ -34,10 +34,22 @@ func ConnectToDB() *gorm.DB {
 
 func Migrate(db *gorm.DB) {
 
-	db.AutoMigrate(&User{})
-	db.AutoMigrate(&Category{})
-	db.AutoMigrate(&Product{})
-	db.AutoMigrate(&Order{})
+	err := db.AutoMigrate(&User{})
+	if err != nil {
+		log.Fatalf("migration failed !")
+	}
+	err = db.AutoMigrate(&Category{})
+	if err != nil {
+		log.Fatalf("migration failed !")
+	}
+	err = db.AutoMigrate(&Product{})
+	if err != nil {
+		log.Fatalf("migration failed !")
+	}
+	err = db.AutoMigrate(&Order{})
+	if err != nil {
+		log.Fatalf("migration failed !")
+	}
 
 }
 
@@ -66,4 +78,3 @@ func ConnectToRedisForCache() (*cache.Cache, error) {
 
 	return myCache, nil
 }
-

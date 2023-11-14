@@ -177,13 +177,14 @@ func (pm *ProductModel) Delete(c *gin.Context) {
 
 func UploadProductImage(c *gin.Context) (string, error) {
 	file, err := c.FormFile("picture")
+	if err != nil {
+		return "", err
+	}
 	filePath := filepath.Join("assets/image", file.Filename)
-	c.SaveUploadedFile(file, filePath)
-
+	err = c.SaveUploadedFile(file, filePath)
+	if err != nil {
+		return filePath, err
+	}
 	return filePath, err
-
-}
-
-func SetRedisCache() {
 
 }

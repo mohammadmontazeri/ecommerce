@@ -8,6 +8,7 @@ import (
 	"ecommerce/internal/order"
 	"ecommerce/internal/product"
 	"ecommerce/internal/user"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,6 +47,8 @@ func main() {
 	protected.PUT("/order/update/:id", orderWithDB.Update)
 	protected.DELETE("/order/delete/:id", orderWithDB.Delete)
 
-	r.Run(":8080")
-
+	err := r.Run(":8080")
+	if err != nil {
+		log.Fatal("server error !")
+	}
 }
