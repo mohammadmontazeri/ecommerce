@@ -2,7 +2,6 @@ package order
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,15 +13,6 @@ import (
 func TestCreate(t *testing.T) {
 	w := httptest.NewRecorder()
 	router := gin.Default()
-	order := OrderWithProducts{
-		ID:         28,
-		Code:       "222",
-		UserID:     1,
-		Price:      333,
-		Status:     "a",
-		ProductsID: []int{1, 3},
-	}
-	json.Marshal(order)
 	var jsonStr = []byte(`{	
 		"id" : 28
 		"code" : "cccccccc" ,

@@ -14,7 +14,10 @@ import (
 )
 
 func ConnectToDB() *gorm.DB {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err !=nil {
+		log.Fatalf("Database Connection Failed !")
+	}
 	connstring := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=5432 sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_NAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"))
 	db, err := gorm.Open(postgres.Open(connstring), &gorm.Config{})
 	if err != nil {
