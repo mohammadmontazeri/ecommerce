@@ -2,26 +2,20 @@ package configs
 
 import (
 	"context"
-
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "58200Mm#"
-	dbname   = "ecommerce2"
-)
-
 func ConnectToDB() *gorm.DB {
-	connstring := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%d sslmode=disable", user, dbname, password, host, port)
+	godotenv.Load()
+	connstring := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=5432 sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_NAME"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"))
 	db, err := gorm.Open(postgres.Open(connstring), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Database Connection Failed !")
