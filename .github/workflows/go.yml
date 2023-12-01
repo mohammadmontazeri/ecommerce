@@ -16,7 +16,7 @@ jobs:
         run: go get .
 
       - name: Build step
-        run: go build -v cmd/main.go
+        run: go build cmd/main.go
       
       - name: Test step
         run: go test
