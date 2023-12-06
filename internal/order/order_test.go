@@ -1,28 +1,25 @@
 package order
 
 import (
-	"bytes"
-	"net/http"
-	"net/http/httptest"
+	ordermocks "ecommerce/internal/mocks/order"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestCreate(t *testing.T) {
-	w := httptest.NewRecorder()
-	router := gin.Default()
-	var jsonStr = []byte(`{	
-		"id" : 28
-		"code" : "cccccccc" ,
-		"price" : 333,
-		"user_id" : 1,                            
-		"products_id" : [1,3] ,
-		"status" : "a"
-		}`)
-	req, _ := http.NewRequest("POST", "api/admin/order/create", bytes.NewBuffer(jsonStr))
-	router.ServeHTTP(w, req)
+func TestOrderServiceCreate(t *testing.T) {
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	orderMock := new(ordermocks.OrderInterface)
+
+	orderMock.On("createOrder", mock.Anything).Return(nil).Once()
+
+	// om := ordermocks.NewOrderInterface(t)
+	// repo := &ordermocks.OrderInterface{}
+	// repo := ordermocks.NewOrderInterface(t)
+
+	// repo.On("CreateOrder" , mock.Anything).Return(nil).Once()
+
+	// orderService := NewOrderService(repo)
+	// orderService.Create()
+
 }

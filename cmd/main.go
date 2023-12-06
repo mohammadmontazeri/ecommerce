@@ -2,9 +2,9 @@ package main
 
 import (
 	"ecommerce/auth"
-	"ecommerce/configs"
+	"ecommerce/db"
 	"ecommerce/internal/category"
-	"ecommerce/internal/middleware"
+
 	"ecommerce/internal/order"
 	"ecommerce/internal/product"
 	"ecommerce/internal/user"
@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	var DB = configs.ConnectToDB()
+	var DB = db.ConnectToDB()
 
 	r := gin.Default()
 	var userWithDB = user.New(DB)
@@ -34,18 +34,18 @@ func main() {
 	protected.DELETE("/category/delete/:id", categoryWithDB.Delete)
 	// product crud
 	var prodcutWithDB = product.New(DB)
-	var prodcutCache = protected.Use(middleware.VerifyProductCache)
 
 	protected.POST("/product/create", prodcutWithDB.Create)
-	prodcutCache.GET("/product/:id", prodcutWithDB.Read)
+	protected.GET("/product/:id", prodcutWithDB.Read)
 	protected.PUT("/product/update/:id", prodcutWithDB.Update)
 	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
 	// order crud
-	var orderWithDB = order.New(DB)
+	var orderModel = order.NewOrderModel(DB)
+	var orderWithDB = order.NewOrderService(&orderModel)
 	protected.POST("/order/create", orderWithDB.Create)
-	protected.GET("/order/:id", orderWithDB.Read)
-	protected.PUT("/order/update/:id", orderWithDB.Update)
-	protected.DELETE("/order/delete/:id", orderWithDB.Delete)
+	// protected.GET("/order/:id", orderWithDB.Read)
+	// protected.PUT("/order/update/:id", orderWithDB.Update)
+	// protected.DELETE("/order/delete/:id", orderWithDB.Delete)
 
 	err := r.Run(":8080")
 	if err != nil {

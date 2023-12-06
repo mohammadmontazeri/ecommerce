@@ -1,7 +1,7 @@
 package category
 
 import (
-	"ecommerce/configs"
+	"ecommerce/db"
 	"net/http"
 
 	"strconv"
@@ -19,7 +19,7 @@ type CategoryModel struct {
 }
 
 type Category struct {
-	configs.Category
+	db.Category
 }
 
 func (cm *CategoryModel) Create(c *gin.Context) {

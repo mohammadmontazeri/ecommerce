@@ -1,7 +1,7 @@
 package order
 
 import (
-	"ecommerce/configs"
+	"ecommerce/db"
 	"errors"
 	"net/http"
 	"strconv"
@@ -20,18 +20,18 @@ type OrderWithProducts struct {
 }
 
 type Order struct {
-	configs.Order
+	db.Order
 }
 
-func New(db *gorm.DB) *OrderModel {
-	return &OrderModel{db: db}
+func NewOrderModel(db *gorm.DB) OrderModel {
+	return OrderModel{db: db}
 }
 
 type OrderModel struct {
 	db *gorm.DB
 }
 
-func (om *OrderModel) Create(c *gin.Context) {
+func (om *OrderModel) createOrder(c *gin.Context) {
 	var tx = om.db.Begin()
 	var input OrderWithProducts
 	defer tx.Rollback()

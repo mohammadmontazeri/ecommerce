@@ -2,7 +2,7 @@ package product
 
 import (
 	"context"
-	"ecommerce/configs"
+	"ecommerce/db"
 	"mime/multipart"
 
 	"net/http"
@@ -25,7 +25,7 @@ type ProductInput struct {
 }
 
 type Product struct {
-	configs.Product
+	db.Product
 }
 
 func New(db *gorm.DB) *ProductModel {
@@ -78,20 +78,26 @@ func (pm *ProductModel) Read(c *gin.Context) {
 	}
 	var product Product
 
-	res := pm.db.Find(&product, intQueryParameter)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
-	}
-
-	myCache, err := configs.ConnectToRedisForCache()
+	myCache, err := db.ConnectToRedisForCache()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx := context.Background()
 	id := c.Param("id")
+
+	if err := myCache.Get(ctx, id, &product); err == nil {
+		c.JSON(http.StatusOK, gin.H{"product": product})
+		c.Abort()
+		return
+	}
+
+	res := pm.db.Find(&product, intQueryParameter)
+
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+		return
+	}
 
 	err = myCache.Set(&cache.Item{
 		Ctx:   ctx,
