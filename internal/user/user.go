@@ -4,7 +4,6 @@ import (
 	"ecommerce/auth"
 	"ecommerce/db"
 	"fmt"
-	_ "fmt"
 	"html"
 	"net/http"
 	"strings"
@@ -14,33 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-type LoginInput struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-// var DB = db.ConnectToDBGorm()
-
-type Connector interface {
-	ConnectDB() *gorm.DB
-}
-
-func (um UserModel) ConnectDB() *gorm.DB {
-	return db.ConnectToDBGorm()
-}
-func NewStruct(c Connector) *UserModel {
-	return &UserModel{connector: c}
+func New(db *gorm.DB) *UserModel {
+	return &UserModel{db: db}
 }
 
 type UserModel struct {
-	connector Connector
+	db *gorm.DB
+}
+
+type User struct {
+	db.User
 }
 
 func (um *UserModel) Register(c *gin.Context) {
@@ -64,7 +46,7 @@ func (um *UserModel) Register(c *gin.Context) {
 		return
 	}
 	// insert user
-	res := um.connector.ConnectDB().Create(&u)
+	res := um.db.Create(&u)
 
 	if res.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
@@ -76,7 +58,7 @@ func (um *UserModel) Register(c *gin.Context) {
 }
 
 func (um *UserModel) Login(c *gin.Context) {
-	var input LoginInput
+	var input User
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -135,19 +117,19 @@ func (um *UserModel) CheckLogin(username, password string) (string, error) {
 
 func (um *UserModel) CheckUserForLogin(username, password string) (int, error) {
 
-	var user User
+	var userLogin User
 
-	res := um.connector.ConnectDB().Where("username = ?", username).First(&user)
+	res := um.db.Where("username = ?", username).First(&userLogin)
 
 	if res.Error != nil {
 		return 0, res.Error
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(userLogin.Password), []byte(password))
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return 0, err
 	}
 
-	return user.Id, nil
+	return int(userLogin.ID), nil
 }

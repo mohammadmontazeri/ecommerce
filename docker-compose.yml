@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: "postgres"
+    hostname: postgres
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER =${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    # networks:
+    #   - ecommerce
+    # volumes:            
+    # - ./new_v:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis
+    container_name: "redis"
+    ports:
+      - "6379:6379"
+    depends_on:
+      - postgres
+
+  api:
+    build: .
+    container_name: "api"
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    # volumes:
+    #   - .:/usr/src/app  
+    # networks:
+    #   - ecommerce
+    # links:
+    #   - "db:database"
+
+# networks:
+#   ecommerce:
+    
+
+# volumes:
+#   new_v:
+
