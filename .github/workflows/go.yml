@@ -3,7 +3,7 @@ name: GoCI
 on:
   push:
     branches:
-      - update_structure
+      - update_structure  
 
 jobs:
   build:
