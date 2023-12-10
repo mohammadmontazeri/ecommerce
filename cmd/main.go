@@ -40,9 +40,9 @@ func main() {
 	protected.PUT("/product/update/:id", prodcutWithDB.Update)
 	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
 	// order crud
-	var orderModel = order.NewOrderModel(DB)
-	var orderWithDB = order.NewOrderService(&orderModel)
-	protected.POST("/order/create", orderWithDB.Create)
+	var orderModel = order.NewModel(DB)
+	var orderWithDB = order.NewOrderModel(&orderModel)
+	protected.POST("/order/create", orderWithDB.CreateOrder)
 	// protected.GET("/order/:id", orderWithDB.Read)
 	// protected.PUT("/order/update/:id", orderWithDB.Update)
 	// protected.DELETE("/order/delete/:id", orderWithDB.Delete)

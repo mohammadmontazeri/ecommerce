@@ -3,6 +3,7 @@ name: GoCI
 on:
   push:
     branches:
+      - master
       - update_structure  
 
 jobs:
