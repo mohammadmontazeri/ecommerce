@@ -1,112 +1,119 @@
 package order
 
 import (
-	"bytes"
-	"ecommerce/db"
-	ordermocks "ecommerce/internal/mocks/order"
-	"encoding/json"
-	"io"
-	"net/http"
-	"net/http/httptest"
+	"ecommerce/internal/mocks/ordermocks"
+	"ecommerce/models"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func GetTestGinContext() *gin.Context {
-	gin.SetMode(gin.TestMode)
+func TestCreateOrderService(t *testing.T) {
 
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = &http.Request{
-		Header: make(http.Header),
+	repo := &ordermocks.OrderRepository{}
+
+	repo.On("AddOrderToPivotTable", mock.AnythingOfType("[]int"), mock.AnythingOfType("models.Order")).
+		Return(nil).
+		Once()
+
+	repo.On("InsertOrderWithoutProducts", mock.AnythingOfType("models.Order")).
+		Return(func(db models.Order) models.Order {
+			return db
+		}, nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	orderInput := models.OrderWithProducts{
+		UserID:     1,
+		Code:       "ppp",
+		Price:      23700,
+		Status:     "s",
+		ProductsID: []int{1},
 	}
 
-	return ctx
+	err := orderService.Create(orderInput)
+
+	assert.Nil(t, err)
+
 }
 
-func MockJsonPost(c *gin.Context, content interface{}) {
-	c.Request.Method = "POST"
-	c.Request.Header.Set("Content-Type", "application/json")
-	c.Set("user_id", 1)
+func TestReadOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
 
-	jsonbytes, err := json.Marshal(content)
-	if err != nil {
-		panic(err)
-	}
+	repo.On("GetOrderFromId", mock.AnythingOfType("int")).
+		Return(func(id int) models.Order {
+			var db models.Order
+			return db
+		}, nil).
+		Once()
 
-	// the request body must be an io.ReadCloser
-	// the bytes buffer though doesn't implement io.Closer,
-	// so you wrap it in a no-op closer
-	c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
+	repo.On("GetOrderProducts", mock.AnythingOfType("models.Order")).
+		Return(func(db models.Order) []int {
+			var ids []int
+			return ids
+		}, nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	var orderID = 31
+	_, err := orderService.Read(orderID)
+
+	assert.Nil(t, err)
+
 }
 
-// func TestCreateOrder(t *testing.T) {
+func TestUpdateOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
 
-// 	w := httptest.NewRecorder()
-// 	c, _ := gin.CreateTestContext(w)
-// 	c.Request.Method = "POST"
-// 	c.Request.Header.Set("Content-Type", "application/json")
+	repo.On("UpdateOrderRow", mock.AnythingOfType("models.Order"), mock.AnythingOfType("int")).
+		Return(func(order models.Order, id int) models.Order {
+			return order
+		}, nil).
+		Once()
 
-// 	var order = []byte(`{	
-// 		"id" : 28
-// 		"code" : "openorder" ,
-// 		"price" : 333,
-// 		"user_id" : 1,                            
-// 		"products_id" : [1,3] ,
-// 		"status" : "a"
-// 		}`)
+	repo.On("DeleteOrderProduct", mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
 
-// 	jsonbytes, err := json.Marshal(order)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	repo.On("AddOrderToPivotTable", mock.AnythingOfType("[]int"), mock.AnythingOfType("models.Order")).
+		Return(nil).
+		Once()
 
-// 	// the request body must be an io.ReadCloser
-// 	// the bytes buffer though doesn't implement io.Closer,
-// 	// so you wrap it in a no-op closer
-// 	c.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
+	orderService := NewOrderService(repo)
 
-
-
-// 	orderMock := ordermocks.NewQueryInterface(t)
-
-
-// 	orderMock.On("InsertOrderWithoutProducts",order).Return(,nil).Once()
-
-// 	// orderCreate := NewOrderService(orderMock)
-
-// 	// orderCreate.Create(c)
-// 	assert.EqualValues(t, http.StatusOK, w.Code)
-
-// 	// orderService.Create()
-
-// }
-
-func TestAddOrderToPivotTable(t *testing.T) {
-	
-	repo := &ordermocks.QueryInterface{} 
-
-	repo.On("AddOrderToPivotTable",mock.AnythingOfType("[]int"),mock.AnythingOfType("order.Order")).
-	Return(nil).
-	Once()
-
-	var productsID = []int{1,3}
-	order := db.Order{
-		UserID: 1,
-		Code: "jjjp",
-		Price: 3800,
-		Status: "s",
+	orderWithProduct := models.OrderWithProducts{
+		UserID:     1,
+		Code:       "rrrrrrr",
+		Price:      9000,
+		Status:     "s",
+		ProductsID: []int{1, 3},
 	}
-	 err := repo.AddOrderToPivotTable(productsID,order)
+	orderID := 30
+	err := orderService.Update(orderWithProduct, orderID)
 
-	 if err !=nil {
-		
-	 }else{
-		
-	 }
+	assert.Nil(t, err)
 
+}
+
+func TestDeleteOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
+
+	repo.On("DeleteRow", mock.AnythingOfType("models.Order"), mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
+
+	repo.On("DeleteOrderProduct", mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	orderID := 30
+	err := orderService.Delete(orderID)
+
+	assert.Nil(t, err)
 
 }

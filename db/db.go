@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"ecommerce/models"
 	"fmt"
 	"log"
 	"os"
@@ -35,15 +36,15 @@ func Migrate(db *gorm.DB) {
 	if err != nil {
 		log.Fatalf("migration failed !")
 	}
-	err = db.AutoMigrate(&Category{})
+	err = db.AutoMigrate(&models.Category{})
 	if err != nil {
 		log.Fatalf("migration failed !")
 	}
-	err = db.AutoMigrate(&Product{})
+	err = db.AutoMigrate(&models.Product{})
 	if err != nil {
 		log.Fatalf("migration failed !")
 	}
-	err = db.AutoMigrate(&Order{})
+	err = db.AutoMigrate(&models.Order{})
 	if err != nil {
 		log.Fatalf("migration failed !")
 	}

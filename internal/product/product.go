@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"ecommerce/db"
+	"ecommerce/models"
 	"mime/multipart"
 
 	"net/http"
@@ -25,7 +26,7 @@ type ProductInput struct {
 }
 
 type Product struct {
-	db.Product
+	models.Product
 }
 
 func New(db *gorm.DB) *ProductModel {

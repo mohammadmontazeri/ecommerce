@@ -27,11 +27,13 @@ func main() {
 	protected.Use(auth.JwtApiMiddleware)
 	protected.GET("/user", user.AuthorizedUser)
 	// category crud
-	var categoryWithDB = category.New(DB)
-	protected.POST("/category/create", categoryWithDB.Create)
-	protected.GET("/category/:id", categoryWithDB.Read)
-	protected.PUT("/category/update/:id", categoryWithDB.Update)
-	protected.DELETE("/category/delete/:id", categoryWithDB.Delete)
+	var categoryRepository = category.NewCategoryRepository(DB)
+	var categoryService = category.NewCategoryService(categoryRepository)
+	var categoryController = category.NewCategoryController(categoryService)
+	protected.POST("/category/create", categoryController.CreateCategory)
+	protected.GET("/category/:id", categoryController.ReadCategory)
+	protected.PUT("/category/update/:id", categoryController.UpdateCategory)
+	protected.DELETE("/category/delete/:id", categoryController.DeleteCategory)
 	// product crud
 	var prodcutWithDB = product.New(DB)
 
@@ -40,12 +42,13 @@ func main() {
 	protected.PUT("/product/update/:id", prodcutWithDB.Update)
 	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
 	// order crud
-	var orderModel = order.NewModel(DB)
-	var orderWithDB = order.NewOrderModel(&orderModel)
-	protected.POST("/order/create", orderWithDB.CreateOrder)
-	// protected.GET("/order/:id", orderWithDB.Read)
-	// protected.PUT("/order/update/:id", orderWithDB.Update)
-	// protected.DELETE("/order/delete/:id", orderWithDB.Delete)
+	var orderRepository = order.NewOrderRepository(DB)
+	var orderService = order.NewOrderService(orderRepository)
+	var orderController = order.NewOrderController(orderService)
+	protected.POST("/order/create", orderController.CreateOrder)
+	protected.GET("/order/:id", orderController.ReadOrder)
+	protected.PUT("/order/update/:id", orderController.UpdateOrder)
+	protected.DELETE("/order/delete/:id", orderController.DeleteOrder)
 
 	err := r.Run(":8080")
 	if err != nil {
