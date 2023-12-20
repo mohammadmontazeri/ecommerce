@@ -1,45 +1,27 @@
 package product
 
 import (
-	"context"
 	"ecommerce/db"
 	"ecommerce/models"
-	"mime/multipart"
+	"strconv"
 
 	"net/http"
 	"path/filepath"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/cache/v8"
-	"gorm.io/gorm"
 )
 
-type ProductInput struct {
-	Id         int                   `json:"id"`
-	Code       string                `form:"code" json:"code" binding:"required"`
-	Title      string                `form:"title" json:"title" binding:"required"`
-	Price      float64               `form:"price" json:"price" binding:"required"`
-	Picture    *multipart.FileHeader `form:"picture" binding:"required"`
-	Detail     string                `form:"detail" json:"detail" binding:"required"`
-	CategoryID uint                  `form:"category_id" json:"category_id" binding:"required"`
+type ProductController struct {
+	productController models.ProductService
 }
 
-type Product struct {
-	models.Product
+func NewProductController(pc models.ProductService) *ProductController {
+	return &ProductController{productController: pc}
 }
 
-func New(db *gorm.DB) *ProductModel {
-	return &ProductModel{db: db}
-}
+func (pc *ProductController) CreateProduct(c *gin.Context) {
 
-type ProductModel struct {
-	db *gorm.DB
-}
-
-func (pm *ProductModel) Create(c *gin.Context) {
-
-	var input ProductInput
+	var input models.ProductInput
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,25 +33,16 @@ func (pm *ProductModel) Create(c *gin.Context) {
 		return
 	}
 
-	product := Product{}
+	err = pc.productController.Create(input, picturePath)
 
-	product.Code = input.Code
-	product.Title = input.Title
-	product.Price = input.Price
-	product.Detail = input.Detail
-	product.CategoryID = input.CategoryID
-	product.Picture = picturePath
-
-	res := pm.db.Create(&product)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "product add successful"})
 	}
 }
 
-func (pm *ProductModel) Read(c *gin.Context) {
+func (pc *ProductController) ReadProduct(c *gin.Context) {
 	var queryParameter = c.Param("id")
 	intQueryParameter, err := strconv.Atoi(queryParameter)
 
@@ -77,34 +50,30 @@ func (pm *ProductModel) Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var product Product
+	var product models.Product
 
-	myCache, err := db.ConnectToRedisForCache()
+	rdb, err := db.ConnectToRedis()
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx := context.Background()
-	id := c.Param("id")
 
-	if err := myCache.Get(ctx, id, &product); err == nil {
+	repo := NewRedisRepository(rdb)
+
+	product, err = repo.GetProduct(queryParameter)
+	if err == nil {
 		c.JSON(http.StatusOK, gin.H{"product": product})
-		c.Abort()
+	}
+
+	product, err = pc.productController.Read(intQueryParameter)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	res := pm.db.Find(&product, intQueryParameter)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
-	}
-
-	err = myCache.Set(&cache.Item{
-		Ctx:   ctx,
-		Key:   id,
-		Value: product,
-	})
+	err = repo.SetProduct(queryParameter, product)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -114,8 +83,8 @@ func (pm *ProductModel) Read(c *gin.Context) {
 
 }
 
-func (pm *ProductModel) Update(c *gin.Context) {
-	var input ProductInput
+func (pc *ProductController) UpdateProduct(c *gin.Context) {
+	var input models.ProductInput
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -134,31 +103,17 @@ func (pm *ProductModel) Update(c *gin.Context) {
 		return
 	}
 
-	product := Product{}
+	err = pc.productController.Update(id, input, picturePath)
 
-	product.Code = input.Code
-	product.Title = input.Title
-	product.Price = input.Price
-	product.Detail = input.Detail
-	product.CategoryID = input.CategoryID
-	product.Picture = picturePath
-
-	res := pm.db.Model(&product).Where("id", id).Updates(product)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-	}
-	rowsAffected := res.RowsAffected
-	if rowsAffected == 0 {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "no row found"})
-		return
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "row updated not completed !"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Message": "row updated successful"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"Message": "row updated successful"})
 }
 
-func (pm *ProductModel) Delete(c *gin.Context) {
-	var product Product
+func (pc *ProductController) DeleteProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -166,19 +121,12 @@ func (pm *ProductModel) Delete(c *gin.Context) {
 		return
 	}
 
-	res := pm.db.Delete(&product, id)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
+	err = pc.productController.Delete(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "row deleted not completed !"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Message": "row deleted successful"})
 	}
-	rowsAffected := res.RowsAffected
-	if rowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"Message": "row deleted successful"})
 
 }
 

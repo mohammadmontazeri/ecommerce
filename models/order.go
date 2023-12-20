@@ -30,7 +30,6 @@ type OrderService interface {
 	Read(orderID int) (OrderWithProducts, error)
 	Update(orderInput OrderWithProducts, orderID int) error
 	Delete(orderID int) error
-	// todo complete with other service
 }
 
 type OrderRepository interface {
@@ -41,5 +40,4 @@ type OrderRepository interface {
 	UpdateOrderRow(input Order, orderID int) (Order, error)
 	DeleteOrderProduct(orderID int) error
 	DeleteRow(order Order, orderID int) error
-	// todo complete with optional methods
 }

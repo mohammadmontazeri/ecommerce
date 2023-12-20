@@ -35,12 +35,14 @@ func main() {
 	protected.PUT("/category/update/:id", categoryController.UpdateCategory)
 	protected.DELETE("/category/delete/:id", categoryController.DeleteCategory)
 	// product crud
-	var prodcutWithDB = product.New(DB)
+	var productRepository = product.NewProductRepository(DB)
+	var productService = product.NewProductService(productRepository)
+	var productController = product.NewProductController(productService)
 
-	protected.POST("/product/create", prodcutWithDB.Create)
-	protected.GET("/product/:id", prodcutWithDB.Read)
-	protected.PUT("/product/update/:id", prodcutWithDB.Update)
-	protected.DELETE("/product/delete/:id", prodcutWithDB.Delete)
+	protected.POST("/product/create", productController.CreateProduct)
+	protected.GET("/product/:id", productController.ReadProduct)
+	protected.PUT("/product/update/:id", productController.UpdateProduct)
+	protected.DELETE("/product/delete/:id", productController.DeleteProduct)
 	// order crud
 	var orderRepository = order.NewOrderRepository(DB)
 	var orderService = order.NewOrderService(orderRepository)
