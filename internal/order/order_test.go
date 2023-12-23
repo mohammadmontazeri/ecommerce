@@ -1,25 +1,119 @@
 package order
 
 import (
-	ordermocks "ecommerce/internal/mocks/order"
+	"ecommerce/internal/mocks/ordermocks"
+	"ecommerce/models"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func TestOrderServiceCreate(t *testing.T) {
+func TestCreateOrderService(t *testing.T) {
 
-	orderMock := new(ordermocks.OrderInterface)
+	repo := &ordermocks.OrderRepository{}
 
-	orderMock.On("createOrder", mock.Anything).Return(nil).Once()
+	repo.On("AddOrderToPivotTable", mock.AnythingOfType("[]int"), mock.AnythingOfType("models.Order")).
+		Return(nil).
+		Once()
 
-	// om := ordermocks.NewOrderInterface(t)
-	// repo := &ordermocks.OrderInterface{}
-	// repo := ordermocks.NewOrderInterface(t)
+	repo.On("InsertOrderWithoutProducts", mock.AnythingOfType("models.Order")).
+		Return(func(db models.Order) models.Order {
+			return db
+		}, nil).
+		Once()
 
-	// repo.On("CreateOrder" , mock.Anything).Return(nil).Once()
+	orderService := NewOrderService(repo)
 
-	// orderService := NewOrderService(repo)
-	// orderService.Create()
+	orderInput := models.OrderWithProducts{
+		UserID:     1,
+		Code:       "ppp",
+		Price:      23700,
+		Status:     "s",
+		ProductsID: []int{1},
+	}
+
+	err := orderService.Create(orderInput)
+
+	assert.Nil(t, err)
+
+}
+
+func TestReadOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
+
+	repo.On("GetOrderFromId", mock.AnythingOfType("int")).
+		Return(func(id int) models.Order {
+			var db models.Order
+			return db
+		}, nil).
+		Once()
+
+	repo.On("GetOrderProducts", mock.AnythingOfType("models.Order")).
+		Return(func(db models.Order) []int {
+			var ids []int
+			return ids
+		}, nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	var orderID = 31
+	_, err := orderService.Read(orderID)
+
+	assert.Nil(t, err)
+
+}
+
+func TestUpdateOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
+
+	repo.On("UpdateOrderRow", mock.AnythingOfType("models.Order"), mock.AnythingOfType("int")).
+		Return(func(order models.Order, id int) models.Order {
+			return order
+		}, nil).
+		Once()
+
+	repo.On("DeleteOrderProduct", mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
+
+	repo.On("AddOrderToPivotTable", mock.AnythingOfType("[]int"), mock.AnythingOfType("models.Order")).
+		Return(nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	orderWithProduct := models.OrderWithProducts{
+		UserID:     1,
+		Code:       "rrrrrrr",
+		Price:      9000,
+		Status:     "s",
+		ProductsID: []int{1, 3},
+	}
+	orderID := 30
+	err := orderService.Update(orderWithProduct, orderID)
+
+	assert.Nil(t, err)
+
+}
+
+func TestDeleteOrderService(t *testing.T) {
+	repo := &ordermocks.OrderRepository{}
+
+	repo.On("DeleteRow", mock.AnythingOfType("models.Order"), mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
+
+	repo.On("DeleteOrderProduct", mock.AnythingOfType("int")).
+		Return(nil).
+		Once()
+
+	orderService := NewOrderService(repo)
+
+	orderID := 30
+	err := orderService.Delete(orderID)
+
+	assert.Nil(t, err)
 
 }

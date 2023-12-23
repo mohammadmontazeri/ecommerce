@@ -1,51 +1,41 @@
 package category
 
 import (
-	"ecommerce/db"
+	"ecommerce/models"
 	"net/http"
 
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func New(db *gorm.DB) *CategoryModel {
-	return &CategoryModel{db: db}
+type CategoryController struct {
+	categoryController models.CategoryService
 }
 
-type CategoryModel struct {
-	db *gorm.DB
+func NewCategoryController(cc models.CategoryService) *CategoryController {
+	return &CategoryController{categoryController: cc}
 }
 
-type Category struct {
-	db.Category
-}
-
-func (cm *CategoryModel) Create(c *gin.Context) {
-	var input Category
+func (cc *CategoryController) CreateCategory(c *gin.Context) {
+	var input models.Category
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	cat := Category{}
+	err := cc.categoryController.Create(input)
 
-	cat.Name = input.Name
-	cat.ParentID = input.ParentID
-
-	res := cm.db.Create(&cat)
-
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "Category add successful"})
 	}
 
 }
 
-func (cm *CategoryModel) Read(c *gin.Context) {
+func (cc *CategoryController) ReadCategory(c *gin.Context) {
 
 	var queryParameter = c.Param("id")
 	intQueryParameter, err := strconv.Atoi(queryParameter)
@@ -54,24 +44,25 @@ func (cm *CategoryModel) Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	var cat Category
 	if queryParameter == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "query parmeter not set"})
 		return
 	}
-	res := cm.db.Find(&cat, intQueryParameter)
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
+
+	category, err := cc.categoryController.Read(intQueryParameter)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	} else {
+		c.JSON(http.StatusOK, gin.H{"category": category})
 	}
-	c.JSON(http.StatusOK, gin.H{"category": cat})
 
 }
 
-func (cm *CategoryModel) Update(c *gin.Context) {
+func (cc *CategoryController) UpdateCategory(c *gin.Context) {
 
-	var input Category
+	var input models.Category
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -84,28 +75,19 @@ func (cm *CategoryModel) Update(c *gin.Context) {
 		return
 	}
 
-	cat := Category{}
-	cat.Name = input.Name
-	cat.ParentID = input.ParentID
+	err = cc.categoryController.Update(id, input)
 
-	res := cm.db.Model(&cat).Where("id", id).Updates(cat)
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
-	}
-	rowsAffected := res.RowsAffected
-	if rowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
-		return
-	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Message": err.Error()})
 
-	c.JSON(http.StatusOK, gin.H{"Message": "row updated successful"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Message": "row updated successful"})
+	}
 
 }
 
-func (cm *CategoryModel) Delete(c *gin.Context) {
+func (cc *CategoryController) DeleteCategory(c *gin.Context) {
 
-	var cat Category
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
@@ -113,17 +95,12 @@ func (cm *CategoryModel) Delete(c *gin.Context) {
 		return
 	}
 
-	res := cm.db.Delete(&cat, id)
-	if res.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": res.Error.Error()})
-		return
-	}
-	rowsAffected := res.RowsAffected
-	if rowsAffected == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no row found"})
-		return
-	}
+	err = cc.categoryController.Delete(id)
 
-	c.JSON(http.StatusOK, gin.H{"Message": "data deleted successful"})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Message": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Message": "data deleted successful"})
+	}
 
 }

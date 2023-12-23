@@ -2,7 +2,7 @@ package user
 
 import (
 	"ecommerce/auth"
-	"ecommerce/db"
+	"ecommerce/models"
 	"fmt"
 	"html"
 	"net/http"
@@ -22,7 +22,7 @@ type UserModel struct {
 }
 
 type User struct {
-	db.User
+	models.User
 }
 
 func (um *UserModel) Register(c *gin.Context) {

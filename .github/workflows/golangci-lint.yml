@@ -2,6 +2,7 @@ name: GoLint
 on:
   push:
     branches:
+      - master
       - update_structure
   pull_request:
 
