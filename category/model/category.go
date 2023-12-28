@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"gorm.io/gorm"
@@ -9,7 +9,6 @@ type Category struct {
 	Name     string `gorm:"not null;unique;size:255"`
 	ParentID *int   `gorm:"not null" json:"parent_id"`
 	Parent   *Category
-	Products []Product `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 }
 
 type CategoryService interface {

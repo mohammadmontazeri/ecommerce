@@ -1,14 +1,13 @@
-package models
+package model
 
 import "gorm.io/gorm"
 
 type Order struct {
 	gorm.Model
-	UserID   int       `gorm:"column:user_id;not null;index:user_index"`
-	Code     string    `gorm:"size:100;unique;not null"`
-	Price    float64   `gorm:"not null;"`
-	Status   string    `gorm:"size:50;not null"`
-	Products []Product `gorm:"many2many:orders_products;"`
+	UserID int     `gorm:"column:user_id;not null;index:user_index"`
+	Code   string  `gorm:"size:100;unique;not null"`
+	Price  float64 `gorm:"not null;"`
+	Status string  `gorm:"size:50;not null"`
 }
 
 type OrderWithProducts struct {
