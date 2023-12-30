@@ -1,20 +1,22 @@
 package product
 
-import "ecommerce/models"
+import (
+	"ecommerce/product/model"
+)
 
 type productService struct {
-	productService models.ProductRepository
+	productService model.ProductRepository
 }
 
-func NewProductService(s models.ProductRepository) *productService {
+func NewProductService(s model.ProductRepository) *productService {
 	return &productService{
 		productService: s,
 	}
 }
 
-func (ps *productService) Create(input models.ProductInput, picturePath string) error {
+func (ps *productService) Create(input model.ProductInput, picturePath string) error {
 
-	product := models.Product{}
+	product := model.Product{}
 
 	product.Code = input.Code
 	product.Title = input.Title
@@ -32,9 +34,9 @@ func (ps *productService) Create(input models.ProductInput, picturePath string) 
 
 }
 
-func (ps *productService) Update(productID int, input models.ProductInput, picturePath string) error {
+func (ps *productService) Update(productID int, input model.ProductInput, picturePath string) error {
 
-	product := models.Product{}
+	product := model.Product{}
 
 	product.Code = input.Code
 	product.Title = input.Title
@@ -55,7 +57,7 @@ func (ps *productService) Update(productID int, input models.ProductInput, pictu
 
 func (ps *productService) Delete(productID int) error {
 
-	product := models.Product{}
+	product := model.Product{}
 	err := ps.productService.DeleteRow(product, productID)
 
 	if err != nil {
@@ -65,8 +67,8 @@ func (ps *productService) Delete(productID int) error {
 	}
 }
 
-func (ps *productService) Read(productID int) (models.Product, error) {
-	product := models.Product{}
+func (ps *productService) Read(productID int) (model.Product, error) {
+	product := model.Product{}
 	product, err := ps.productService.GetProduct(product, productID)
 
 	if err != nil {

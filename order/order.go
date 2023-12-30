@@ -1,7 +1,7 @@
 package order
 
 import (
-	"ecommerce/models"
+	"ecommerce/order/model"
 	"net/http"
 	"strconv"
 
@@ -9,14 +9,14 @@ import (
 )
 
 type OrderController struct {
-	orderController models.OrderService
+	orderController model.OrderService
 }
 
-func NewOrderController(oc models.OrderService) *OrderController {
+func NewOrderController(oc model.OrderService) *OrderController {
 	return &OrderController{orderController: oc}
 }
 func (oc *OrderController) CreateOrder(c *gin.Context) {
-	var input models.OrderWithProducts
+	var input model.OrderWithProducts
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -53,7 +53,7 @@ func (oc *OrderController) ReadOrder(c *gin.Context) {
 }
 
 func (oc *OrderController) UpdateOrder(c *gin.Context) {
-	var input models.OrderWithProducts
+	var input model.OrderWithProducts
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

@@ -1,7 +1,7 @@
 package category
 
 import (
-	"ecommerce/models"
+	"ecommerce/category/model"
 	"errors"
 
 	"gorm.io/gorm"
@@ -11,13 +11,13 @@ type categoryRepository struct {
 	DB *gorm.DB
 }
 
-func NewCategoryRepository(db *gorm.DB) models.CategoryRepository {
+func NewCategoryRepository(db *gorm.DB) model.CategoryRepository {
 	return &categoryRepository{
 		DB: db,
 	}
 }
 
-func (o *categoryRepository) InsertCategory(category models.Category) error {
+func (o *categoryRepository) InsertCategory(category model.Category) error {
 
 	res := o.DB.Create(&category)
 
@@ -28,7 +28,7 @@ func (o *categoryRepository) InsertCategory(category models.Category) error {
 	}
 }
 
-func (o *categoryRepository) GetCategory(category models.Category, categoryID int) (models.Category, error) {
+func (o *categoryRepository) GetCategory(category model.Category, categoryID int) (model.Category, error) {
 
 	res := o.DB.Find(&category, categoryID)
 	if res.Error != nil {
@@ -38,7 +38,7 @@ func (o *categoryRepository) GetCategory(category models.Category, categoryID in
 	return category, nil
 }
 
-func (o *categoryRepository) UpdateRow(category models.Category, categoryID int) error {
+func (o *categoryRepository) UpdateRow(category model.Category, categoryID int) error {
 	res := o.DB.Model(&category).Where("id", categoryID).Updates(category)
 	if res.Error != nil {
 		return res.Error
@@ -51,7 +51,7 @@ func (o *categoryRepository) UpdateRow(category models.Category, categoryID int)
 	return nil
 }
 
-func (o *categoryRepository) DeleteRow(category models.Category, categoryID int) error {
+func (o *categoryRepository) DeleteRow(category model.Category, categoryID int) error {
 
 	res := o.DB.Delete(&category, categoryID)
 	if res.Error != nil {

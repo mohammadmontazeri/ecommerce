@@ -2,7 +2,7 @@ package product
 
 import (
 	"context"
-	"ecommerce/models"
+	"ecommerce/product/model"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -10,8 +10,8 @@ import (
 var ctx = context.Background()
 
 type Repository interface {
-	SetProduct(key string, value models.Product) error
-	GetProduct(key string) (models.Product, error)
+	SetProduct(key string, value model.Product) error
+	GetProduct(key string) (model.Product, error)
 }
 
 type repository struct {
@@ -22,14 +22,14 @@ func NewRedisRepository(c redis.Cmdable) Repository {
 	return &repository{Client: c}
 }
 
-func (r *repository) SetProduct(key string, value models.Product) error {
+func (r *repository) SetProduct(key string, value model.Product) error {
 
 	return r.Client.HSet(ctx, key, value).Err()
 
 }
 
-func (r *repository) GetProduct(key string) (models.Product, error) {
-	product := models.Product{}
+func (r *repository) GetProduct(key string) (model.Product, error) {
+	product := model.Product{}
 	err := r.Client.HGetAll(ctx, key).Scan(&product)
 
 	if err != nil {

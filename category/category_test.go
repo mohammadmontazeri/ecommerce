@@ -1,8 +1,9 @@
 package category
 
 import (
-	categorymocks "ecommerce/internal/mocks/categorymocks"
-	"ecommerce/models"
+	categorymocks "ecommerce/category/categorymocks"
+	"ecommerce/category/model"
+
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestCreateCategoryService(t *testing.T) {
 	categoryService := NewCategoryService(repo)
 
 	parentID := 1
-	categoryInput := models.Category{
+	categoryInput := model.Category{
 		Name:     "category_test_name",
 		ParentID: &parentID,
 	}
@@ -35,7 +36,7 @@ func TestReadCategoryService(t *testing.T) {
 	repo := &categorymocks.CategoryRepository{}
 
 	repo.On("GetCategory", mock.AnythingOfType("models.Category"), mock.AnythingOfType("int")).
-		Return(func(cat models.Category, id int) models.Category {
+		Return(func(cat model.Category, id int) model.Category {
 			return cat
 		}, nil).
 		Once()
@@ -59,7 +60,7 @@ func TestUpdateCategoryService(t *testing.T) {
 	categoryService := NewCategoryService(repo)
 
 	parentID := 1
-	categoryInput := models.Category{
+	categoryInput := model.Category{
 		Name:     "category_test_name",
 		ParentID: &parentID,
 	}

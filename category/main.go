@@ -1,8 +1,7 @@
-package main
+package category
 
 import (
 	"ecommerce/category/db"
-	"ecommerce/internal/category"
 
 	"log"
 
@@ -17,9 +16,9 @@ func main() {
 	public := r.Group("/api")
 
 	// category crud
-	var categoryRepository = category.NewCategoryRepository(DB)
-	var categoryService = category.NewCategoryService(categoryRepository)
-	var categoryController = category.NewCategoryController(categoryService)
+	var categoryRepository = NewCategoryRepository(DB)
+	var categoryService = NewCategoryService(categoryRepository)
+	var categoryController = NewCategoryController(categoryService)
 	public.POST("/category/create", categoryController.CreateCategory)
 	public.GET("/category/:id", categoryController.ReadCategory)
 	public.PUT("/category/update/:id", categoryController.UpdateCategory)

@@ -1,8 +1,8 @@
 package product
 
 import (
-	"ecommerce/db"
-	"ecommerce/models"
+	"ecommerce/product/db"
+	"ecommerce/product/model"
 	"strconv"
 
 	"net/http"
@@ -12,16 +12,16 @@ import (
 )
 
 type ProductController struct {
-	productController models.ProductService
+	productController model.ProductService
 }
 
-func NewProductController(pc models.ProductService) *ProductController {
+func NewProductController(pc model.ProductService) *ProductController {
 	return &ProductController{productController: pc}
 }
 
 func (pc *ProductController) CreateProduct(c *gin.Context) {
 
-	var input models.ProductInput
+	var input model.ProductInput
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -50,7 +50,7 @@ func (pc *ProductController) ReadProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var product models.Product
+	var product model.Product
 
 	rdb, err := db.ConnectToRedis()
 
@@ -84,7 +84,7 @@ func (pc *ProductController) ReadProduct(c *gin.Context) {
 }
 
 func (pc *ProductController) UpdateProduct(c *gin.Context) {
-	var input models.ProductInput
+	var input model.ProductInput
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {

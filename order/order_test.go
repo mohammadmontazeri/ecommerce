@@ -1,8 +1,8 @@
 package order
 
 import (
-	"ecommerce/internal/mocks/ordermocks"
-	"ecommerce/models"
+	"ecommerce/order/model"
+	"ecommerce/order/ordermocks"
 	"errors"
 	"testing"
 
@@ -18,17 +18,17 @@ func TestCreateOrderWhenOrderWithoutProductNotInsert(t *testing.T) {
 		Once()
 
 	repo.On("InsertOrderWithoutProducts", mock.AnythingOfType("models.Order")).
-		Return(func(db models.Order) models.Order {
+		Return(func(db model.Order) model.Order {
 			return db
 		},
-			func(db models.Order) error {
+			func(db model.Order) error {
 				var err error = errors.New("new error")
 				return err
 			}).Once()
 
 	orderService := NewOrderService(repo)
 
-	orderInput := models.OrderWithProducts{
+	orderInput := model.OrderWithProducts{
 		UserID:     1,
 		Code:       "ppp",
 		Price:      23700,
@@ -48,14 +48,14 @@ func TestCreateOrderWhenProductsIDIsNull(t *testing.T) {
 		Once()
 
 	repo.On("InsertOrderWithoutProducts", mock.AnythingOfType("models.Order")).
-		Return(func(db models.Order) models.Order {
+		Return(func(db model.Order) model.Order {
 			return db
 		}, nil).
 		Once()
 
 	orderService := NewOrderService(repo)
 
-	orderInput := models.OrderWithProducts{
+	orderInput := model.OrderWithProducts{
 		UserID:     1,
 		Code:       "ppp",
 		Price:      23700,
@@ -77,14 +77,14 @@ func TestCreateOrderService(t *testing.T) {
 		Once()
 
 	repo.On("InsertOrderWithoutProducts", mock.AnythingOfType("models.Order")).
-		Return(func(db models.Order) models.Order {
+		Return(func(db model.Order) model.Order {
 			return db
 		}, nil).
 		Once()
 
 	orderService := NewOrderService(repo)
 
-	orderInput := models.OrderWithProducts{
+	orderInput := model.OrderWithProducts{
 		UserID:     1,
 		Code:       "ppp",
 		Price:      23700,
@@ -102,14 +102,14 @@ func TestReadOrderService(t *testing.T) {
 	repo := &ordermocks.OrderRepository{}
 
 	repo.On("GetOrderFromId", mock.AnythingOfType("int")).
-		Return(func(id int) models.Order {
-			var db models.Order
+		Return(func(id int) model.Order {
+			var db model.Order
 			return db
 		}, nil).
 		Once()
 
 	repo.On("GetOrderProducts", mock.AnythingOfType("models.Order")).
-		Return(func(db models.Order) []int {
+		Return(func(db model.Order) []int {
 			var ids []int
 			return ids
 		}, nil).
@@ -128,7 +128,7 @@ func TestUpdateOrderService(t *testing.T) {
 	repo := &ordermocks.OrderRepository{}
 
 	repo.On("UpdateOrderRow", mock.AnythingOfType("models.Order"), mock.AnythingOfType("int")).
-		Return(func(order models.Order, id int) models.Order {
+		Return(func(order model.Order, id int) model.Order {
 			return order
 		}, nil).
 		Once()
@@ -143,7 +143,7 @@ func TestUpdateOrderService(t *testing.T) {
 
 	orderService := NewOrderService(repo)
 
-	orderWithProduct := models.OrderWithProducts{
+	orderWithProduct := model.OrderWithProducts{
 		UserID:     1,
 		Code:       "rrrrrrr",
 		Price:      9000,

@@ -1,7 +1,7 @@
 package product
 
 import (
-	"ecommerce/models"
+	"ecommerce/product/model"
 	"errors"
 
 	"gorm.io/gorm"
@@ -11,13 +11,13 @@ type productRepository struct {
 	DB *gorm.DB
 }
 
-func NewProductRepository(db *gorm.DB) models.ProductRepository {
+func NewProductRepository(db *gorm.DB) model.ProductRepository {
 	return &productRepository{
 		DB: db,
 	}
 }
 
-func (o *productRepository) InsertProduct(product models.Product) error {
+func (o *productRepository) InsertProduct(product model.Product) error {
 
 	res := o.DB.Create(&product)
 
@@ -28,7 +28,7 @@ func (o *productRepository) InsertProduct(product models.Product) error {
 	}
 }
 
-func (o *productRepository) UpdateRow(product models.Product, productID int) error {
+func (o *productRepository) UpdateRow(product model.Product, productID int) error {
 
 	res := o.DB.Model(&product).Where("id", productID).Updates(product)
 
@@ -42,7 +42,7 @@ func (o *productRepository) UpdateRow(product models.Product, productID int) err
 	return nil
 }
 
-func (o *productRepository) DeleteRow(product models.Product, productID int) error {
+func (o *productRepository) DeleteRow(product model.Product, productID int) error {
 
 	res := o.DB.Delete(&product, productID)
 
@@ -57,7 +57,7 @@ func (o *productRepository) DeleteRow(product models.Product, productID int) err
 	return nil
 }
 
-func (o *productRepository) GetProduct(product models.Product, productID int) (models.Product, error) {
+func (o *productRepository) GetProduct(product model.Product, productID int) (model.Product, error) {
 	res := o.DB.Find(&product, productID)
 
 	if res.Error != nil {

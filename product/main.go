@@ -1,7 +1,6 @@
-package main
+package product
 
 import (
-	"ecommerce/internal/product"
 	"ecommerce/product/db"
 	"log"
 
@@ -15,9 +14,9 @@ func main() {
 	r := gin.Default()
 	public := r.Group("/api")
 	// product crud
-	var productRepository = product.NewProductRepository(DB)
-	var productService = product.NewProductService(productRepository)
-	var productController = product.NewProductController(productService)
+	var productRepository = NewProductRepository(DB)
+	var productService = NewProductService(productRepository)
+	var productController = NewProductController(productService)
 
 	public.POST("/product/create", productController.CreateProduct)
 	public.GET("/product/:id", productController.ReadProduct)

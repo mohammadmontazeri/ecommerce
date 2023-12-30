@@ -1,7 +1,6 @@
-package main
+package order
 
 import (
-	"ecommerce/internal/order"
 	"ecommerce/order/db"
 
 	"log"
@@ -18,9 +17,9 @@ func main() {
 	public := r.Group("/api")
 
 	// order crud
-	var orderRepository = order.NewOrderRepository(DB)
-	var orderService = order.NewOrderService(orderRepository)
-	var orderController = order.NewOrderController(orderService)
+	var orderRepository = NewOrderRepository(DB)
+	var orderService = NewOrderService(orderRepository)
+	var orderController = NewOrderController(orderService)
 	public.POST("/order/create", orderController.CreateOrder)
 	public.GET("/order/:id", orderController.ReadOrder)
 	public.PUT("/order/update/:id", orderController.UpdateOrder)

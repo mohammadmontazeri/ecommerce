@@ -3,7 +3,7 @@
 package categorymocks
 
 import (
-	models "ecommerce/models"
+	models "ecommerce/category/model"
 
 	mock "github.com/stretchr/testify/mock"
 )

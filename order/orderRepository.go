@@ -1,7 +1,7 @@
 package order
 
 import (
-	"ecommerce/models"
+	"ecommerce/order/model"
 	"errors"
 
 	"gorm.io/gorm"
@@ -11,13 +11,13 @@ type orderRepository struct {
 	DB *gorm.DB
 }
 
-func NewOrderRepository(db *gorm.DB) models.OrderRepository {
+func NewOrderRepository(db *gorm.DB) model.OrderRepository {
 	return &orderRepository{
 		DB: db,
 	}
 }
 
-func (o *orderRepository) InsertOrderWithoutProducts(order models.Order) (models.Order, error) {
+func (o *orderRepository) InsertOrderWithoutProducts(order model.Order) (model.Order, error) {
 
 	if res := o.DB.Create(&order); res.Error != nil {
 		return order, res.Error
@@ -25,7 +25,7 @@ func (o *orderRepository) InsertOrderWithoutProducts(order models.Order) (models
 	return order, nil
 }
 
-func (o *orderRepository) AddOrderToPivotTable(productsID []int, order models.Order) error {
+func (o *orderRepository) AddOrderToPivotTable(productsID []int, order model.Order) error {
 	for _, productID := range productsID {
 		res := o.DB.Exec("INSERT INTO orders_products (ORDER_ID,PRODUCT_ID) VALUES ($1,$2)", order.ID, productID)
 		if res.Error != nil {
@@ -36,8 +36,8 @@ func (o *orderRepository) AddOrderToPivotTable(productsID []int, order models.Or
 	return nil
 }
 
-func (o *orderRepository) GetOrderFromId(intQueryParameter int) (models.Order, error) {
-	var order models.Order
+func (o *orderRepository) GetOrderFromId(intQueryParameter int) (model.Order, error) {
+	var order model.Order
 	res := o.DB.Find(&order, intQueryParameter)
 
 	if res.Error != nil {
@@ -46,7 +46,7 @@ func (o *orderRepository) GetOrderFromId(intQueryParameter int) (models.Order, e
 	return order, nil
 }
 
-func (o *orderRepository) GetOrderProducts(orderWithoutProduct models.Order) ([]int, error) {
+func (o *orderRepository) GetOrderProducts(orderWithoutProduct model.Order) ([]int, error) {
 	var products []int
 	rows, err := o.DB.Raw("SELECT product_id FROM orders_products WHERE order_id=$1", orderWithoutProduct.ID).Rows()
 	if err != nil {
@@ -63,7 +63,7 @@ func (o *orderRepository) GetOrderProducts(orderWithoutProduct models.Order) ([]
 	return products, nil
 }
 
-func (o *orderRepository) UpdateOrderRow(order models.Order, orderID int) (models.Order, error) {
+func (o *orderRepository) UpdateOrderRow(order model.Order, orderID int) (model.Order, error) {
 
 	res := o.DB.Model(&order).Where("id", orderID).Updates(order)
 
@@ -92,7 +92,7 @@ func (o *orderRepository) DeleteOrderProduct(orderID int) error {
 	return nil
 }
 
-func (o *orderRepository) DeleteRow(order models.Order, orderID int) error {
+func (o *orderRepository) DeleteRow(order model.Order, orderID int) error {
 
 	res := o.DB.Delete(&order, orderID)
 

@@ -1,7 +1,7 @@
 package category
 
 import (
-	"ecommerce/models"
+	"ecommerce/category/model"
 	"net/http"
 
 	"strconv"
@@ -10,15 +10,15 @@ import (
 )
 
 type CategoryController struct {
-	categoryController models.CategoryService
+	categoryController model.CategoryService
 }
 
-func NewCategoryController(cc models.CategoryService) *CategoryController {
+func NewCategoryController(cc model.CategoryService) *CategoryController {
 	return &CategoryController{categoryController: cc}
 }
 
 func (cc *CategoryController) CreateCategory(c *gin.Context) {
-	var input models.Category
+	var input model.Category
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -62,7 +62,7 @@ func (cc *CategoryController) ReadCategory(c *gin.Context) {
 
 func (cc *CategoryController) UpdateCategory(c *gin.Context) {
 
-	var input models.Category
+	var input model.Category
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {

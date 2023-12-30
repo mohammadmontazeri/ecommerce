@@ -1,26 +1,26 @@
 package order
 
 import (
-	"ecommerce/models"
+	"ecommerce/order/model"
 	"errors"
 )
 
 type orderService struct {
-	orderRepository models.OrderRepository
+	orderRepository model.OrderRepository
 }
 
-func NewOrderService(s models.OrderRepository) *orderService {
+func NewOrderService(s model.OrderRepository) *orderService {
 	return &orderService{
 		orderRepository: s,
 	}
 }
 
-func (os *orderService) Create(input models.OrderWithProducts) error {
+func (os *orderService) Create(input model.OrderWithProducts) error {
 
 	if len(input.ProductsID) == 0 {
 		return errors.New("error :ProductsID not Corrected !")
 	}
-	o := models.OrderInput{}
+	o := model.OrderInput{}
 
 	o.Order.Code = input.Code
 	o.Order.UserID = input.UserID
@@ -41,9 +41,9 @@ func (os *orderService) Create(input models.OrderWithProducts) error {
 	return nil
 }
 
-func (os *orderService) Read(orderID int) (models.OrderWithProducts, error) {
-	var orderWithoutProduct models.Order
-	var orderWithProducts models.OrderWithProducts
+func (os *orderService) Read(orderID int) (model.OrderWithProducts, error) {
+	var orderWithoutProduct model.Order
+	var orderWithProducts model.OrderWithProducts
 	orderWithoutProduct, err := os.orderRepository.GetOrderFromId(orderID)
 	if err != nil {
 		return orderWithProducts, err
@@ -56,7 +56,7 @@ func (os *orderService) Read(orderID int) (models.OrderWithProducts, error) {
 		return orderWithProducts, err
 	}
 
-	order := models.OrderWithProducts{}
+	order := model.OrderWithProducts{}
 	order.ID = int(orderWithoutProduct.ID)
 	order.ProductsID = orderProducts
 	order.Code = orderWithoutProduct.Code
@@ -68,9 +68,9 @@ func (os *orderService) Read(orderID int) (models.OrderWithProducts, error) {
 
 }
 
-func (os *orderService) Update(input models.OrderWithProducts, orderID int) error {
+func (os *orderService) Update(input model.OrderWithProducts, orderID int) error {
 
-	order := models.Order{}
+	order := model.Order{}
 	if len(input.ProductsID) == 0 {
 		return errors.New("error :ProductsID not Corrected !")
 	}
@@ -109,7 +109,7 @@ func (os *orderService) Delete(orderID int) error {
 		return err
 	}
 
-	order := models.Order{}
+	order := model.Order{}
 	err = os.orderRepository.DeleteRow(order, orderID)
 
 	if err != nil {

@@ -1,7 +1,6 @@
-package main
+package user
 
 import (
-	"ecommerce/internal/user"
 	"ecommerce/user/db"
 	"log"
 
@@ -13,7 +12,7 @@ func main() {
 	var DB = db.ConnectToDB()
 
 	r := gin.Default()
-	var userWithDB = user.New(DB)
+	var userWithDB = New(DB)
 	public := r.Group("/api")
 	public.POST("/register", userWithDB.Register)
 	public.POST("/login", userWithDB.Login)

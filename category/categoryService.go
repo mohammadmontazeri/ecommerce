@@ -1,20 +1,20 @@
 package category
 
-import "ecommerce/models"
+import "ecommerce/category/model"
 
 type categoryService struct {
-	categoryService models.CategoryRepository
+	categoryService model.CategoryRepository
 }
 
-func NewCategoryService(s models.CategoryRepository) *categoryService {
+func NewCategoryService(s model.CategoryRepository) *categoryService {
 	return &categoryService{
 		categoryService: s,
 	}
 }
 
-func (cs *categoryService) Create(input models.Category) error {
+func (cs *categoryService) Create(input model.Category) error {
 
-	cat := models.Category{}
+	cat := model.Category{}
 
 	cat.Name = input.Name
 	cat.ParentID = input.ParentID
@@ -28,9 +28,9 @@ func (cs *categoryService) Create(input models.Category) error {
 	}
 }
 
-func (cs *categoryService) Read(categoryID int) (models.Category, error) {
+func (cs *categoryService) Read(categoryID int) (model.Category, error) {
 
-	category := models.Category{}
+	category := model.Category{}
 
 	category, err := cs.categoryService.GetCategory(category, categoryID)
 
@@ -42,9 +42,9 @@ func (cs *categoryService) Read(categoryID int) (models.Category, error) {
 
 }
 
-func (cs *categoryService) Update(categoryID int, input models.Category) error {
+func (cs *categoryService) Update(categoryID int, input model.Category) error {
 
-	cat := models.Category{}
+	cat := model.Category{}
 	cat.Name = input.Name
 	cat.ParentID = input.ParentID
 
@@ -60,7 +60,7 @@ func (cs *categoryService) Update(categoryID int, input models.Category) error {
 
 func (cs *categoryService) Delete(categoryID int) error {
 
-	category := models.Category{}
+	category := model.Category{}
 	err := cs.categoryService.DeleteRow(category, categoryID)
 
 	if err != nil {

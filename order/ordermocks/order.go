@@ -3,7 +3,7 @@
 package ordermocks
 
 import (
-	models "ecommerce/models"
+	models "ecommerce/order/model"
 
 	mock "github.com/stretchr/testify/mock"
 )
